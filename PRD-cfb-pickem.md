@@ -21,10 +21,12 @@
    - 5.5 Making Picks
    - 5.6 Scoring Engine
    - 5.7 Results Agent (Auto-Grading)
-   - 5.8 Standings, History & Charts
-   - 5.9 Money Tracking
-   - 5.10 Notifications
-   - 5.11 Admin Dashboard
+   - 5.8 Live Leaderboard (Game Days)
+   - 5.9 Standings, History & Charts
+   - 5.10 Season ATS Team
+   - 5.11 Money Tracking
+   - 5.12 Notifications
+   - 5.13 Admin Dashboard
 6. [Architecture](#6-architecture)
 7. [Data Model](#7-data-model)
 8. [API Routes & Crons](#8-api-routes--crons)
@@ -37,7 +39,7 @@
 
 ## 1. Overview
 
-CFB Pick'em is a weekly college football pool built into the BetzGames platform
+**Betz CFB Pick'em** is a weekly college football pool built into the BetzGames platform
 (alongside BetzGolf and the 2026 World Cup game). Every Tuesday morning during
 the regular season, an automated agent pulls the week's Top 25 games and their
 point spreads from a single consistent source, snaps every spread to a
@@ -75,8 +77,12 @@ Tue 8:00am CT: Agent pulls Top 25 games + spreads → freezes half-point lines
 - **Flexible week formats**: the slate builder can express any structure the
   league has used — straight-up sections, spread sections, a combined
   spread + over/under "Game of the Week", and "here are 15 games, pick any 10."
-- **Player boosts**: each member flags 2 of their picks per week to be worth
-  triple points (wrong boosted picks just score 0 — upside only).
+- **Player boosts**: each member flags 2 of their **spread-section** picks per
+  week to be worth triple points (wrong boosted picks just score 0 — upside
+  only). Straight-up and Game-of-the-Week picks cannot be boosted.
+- **Live game-day leaderboard**: scores for slate games sync every ~5 minutes
+  during game windows; the leaderboard shows in-progress results, projected
+  "if it ended now" standings, and who picked what on every locked game.
 - **Per-game locks**: every game locks at its own kickoff; picks stay hidden
   from other members until the game locks.
 - **Automated grading** with commissioner override.
@@ -94,9 +100,8 @@ Tue 8:00am CT: Agent pulls Top 25 games + spreads → freezes half-point lines
 - **No season-long extras** from prior years: no Triple-Up week, no
   drop-lowest-week, no Champion/Heisman props, no weekly bonus questions, no
   ghost players (Vegas/Underdog auto-entries). All are candidates for Phase 2.
-- **No live in-game scores.** Grading happens after games go final; this is not
-  a live-tracker product (avoids the polling load that bit BetzGolf).
-- **No native app / push notifications.** Responsive web only.
+- **No native app / push notifications.** Responsive web only; SMS via Twilio
+  is the notification channel.
 
 ---
 
@@ -125,8 +130,21 @@ during build; anything genuinely open is in [§10](#10-open-questions).
 | 16 | Grading | Auto score sync + admin override |
 | 17 | Pick visibility | Hidden until each game locks, then visible |
 | 18 | Home | BetzGames repo, `betzgames.com/cfb` |
-| 19 | Notifications | Build templates for all four types; channel/enable decisions later |
+| 19 | Notifications | Build templates for all four types; channel/enable decisions later *(superseded by #24–25)* |
 | 20 | Standings | Full history + charts |
+
+Second round, also 2026-08-13:
+
+| # | Topic | Decision |
+|---|-------|----------|
+| 21 | Season ATS scoring | +2 pts per cover; **all wiped** if the team finishes the regular season under 50% ATS |
+| 22 | Season ATS eligibility | Power 4 (SEC, Big Ten, Big 12, ACC) + Notre Dame; **duplicates allowed**; locks at Week 1 first kickoff; awarded as a **season-end lump sum** |
+| 23 | Weekly payout amount | Configurable field; Matt sets the number before Week 1 |
+| 24 | Notification channel | **SMS via Twilio** (existing platform integration) |
+| 25 | Notifications ON at launch | Week published, deadline reminder, weekly recap — recap sends only after the week fully grades (early-season weeks can include Monday games, so recap may land Tuesday morning those weeks) |
+| 26 | Boost eligibility | **Spread sections only** (the 2-pt games). Straight-up and GOTW picks cannot be boosted |
+| 27 | Brand | **Betz CFB Pick'em** |
+| 28 | Live leaderboard | Yes — in-progress scores for slate games synced every ~5 min during game windows, live projected standings, who-picked-what on locked games |
 
 ---
 
@@ -254,10 +272,10 @@ post-publish mutations are *void game* and result overrides.
   Saturday morning. Lock time = stored kickoff timestamp; enforce server-side
   on every write (never trust the client clock).
 - **Missed picks score 0.** No mercy rule, no lowest-score default.
-- **Boosts:** each member flags up to 2 of their picks per week as boosted
-  (count and multiplier are league settings; default 2 × 3×). A boost can be
-  added/moved/removed until its game locks. Boosts on combo (GOTW) sections
-  are allowed unless the league setting excludes them (setting default: allowed).
+- **Boosts:** each member flags up to 2 of their **spread-section** picks per
+  week as boosted (count and multiplier are league settings; default 2 × 3×,
+  so a 2-pt spread pick pays 6). Straight-up and GOTW picks are not
+  boost-eligible. A boost can be added/moved/removed until its game locks.
 - **Visibility:** before a game locks, members see only their own pick and a
   league-wide "picked / not picked" indicator per member. At lock, everyone's
   pick for that game (and its boost flag) becomes visible.
@@ -273,20 +291,51 @@ incremented, so admin overrides just trigger a re-grade). Full rules in §9.
 
 ### 5.7 Results Agent (Auto-Grading)
 
-- **Schedule:** Saturday 11:00pm CT and Sunday 8:00am CT sweeps (Vercel cron),
-  plus on-demand "Sync scores now" button in admin. The Sunday sweep catches
-  late Pac-side kickoffs and any Friday games; a Tuesday-morning pre-pull check
-  re-grades anything still unresolved.
-- Pulls final scores from the **same ESPN scoreboard source**, matches games by
-  stored ESPN event ID (never by team-name matching — see WC lessons), marks
-  games `final`, and runs the scoring engine.
+- **Primary path:** the live-score sync (§5.8) already ingests scores every
+  ~5 minutes during game windows; when it sees a slate game go final, it marks
+  it `final` and runs the scoring engine for that game immediately. Grading is
+  therefore near-real-time as games end.
+- **Backstop sweeps:** Sunday 8:00am CT (catches anything the live sync
+  missed) and a Tuesday-morning pre-pull check that re-grades anything still
+  unresolved — including early-season Monday games. On-demand "Sync scores
+  now" button in admin.
+- Scores come from the **same ESPN scoreboard source**, matched by stored ESPN
+  event ID (never by team-name matching — see WC lessons).
 - **Admin override:** commissioner can edit any game's final score or manually
   set a pick outcome; a re-grade runs automatically. Overrides are flagged in
   the audit trail.
 - Week reaches `graded` status when all non-voided slate games are final;
   weekly winner(s) recorded at that moment.
 
-### 5.8 Standings, History & Charts
+### 5.8 Live Leaderboard (Game Days)
+
+The game-day experience: while slate games are being played, the leaderboard
+goes live.
+
+- **Live score sync:** a cron polls the ESPN scoreboard every **5 minutes**,
+  self-gated to actual game windows — it computes the day's window from the
+  slate's kickoff times and does nothing (and hits no API) outside it. This is
+  the exact pattern of the World Cup sync
+  (`src/app/api/wc/sync-scores/route.ts`, driven by Supabase pg_cron): reuse
+  it, including the "store scores in our orientation, keyed by event ID"
+  discipline.
+- **What members see:**
+  - Every slate game with live score, period/clock, and the frozen line —
+    with a live "covering / not covering" indicator per game.
+  - **Projected standings** — each member's week score *if all current results
+    held*, clearly badged as projected. In-progress games grade provisionally
+    (spread vs. frozen line on the live score); final games grade for real.
+  - **Who picked what** — for every locked game, each member's pick (and boost
+    flag) inline, so you can watch the league sweat in real time. Unlocked
+    games still show only pick counts.
+- **Client discipline (BetzGolf lesson):** the server sync owns freshness.
+  Clients revalidate on a modest interval (~60s) against cached server data —
+  no per-client Supabase polling loops, no realtime channels needed for v1.
+- Nothing about live data affects the record: official grading only happens on
+  `final` status, and the §5.7 backstops reconcile anything the live sync got
+  wrong.
+
+### 5.9 Standings, History & Charts
 
 **Pages:**
 
@@ -321,7 +370,29 @@ ties are broken by boosted-pick record (most correct boosted picks; still tied
    race chart showing what always-pick-the-favorite would have scored. Display
    only; not a leaderboard entry.
 
-### 5.9 Money Tracking
+### 5.10 Season ATS Team
+
+Fully specified (Decisions #21–22); builds in Phase 1.1 since points only land
+at season end, but the **team selection UI must ship before Week 1** because
+picks lock at the Week 1 first kickoff.
+
+- Before Week 1, each member picks **one team** from the Power 4 (SEC,
+  Big Ten, Big 12, ACC) **plus Notre Dame**. Duplicates allowed — any number
+  of members can ride the same team.
+- Pick locks at the first kickoff of Week 1. Members who don't pick simply
+  have no ATS team (0 bonus).
+- **Scoring: +2 points per regular-season game the team covers** (against the
+  closing half-point line, tracked weekly by the agent) — but if the team
+  finishes the regular season **under 50% ATS, the entire bonus is wiped to
+  0** (exactly 50% is safe).
+- Points are **not** mixed into weekly standings. A dedicated ATS-team board
+  shows each team's running ATS record and the at-risk bonus all season; the
+  lump sum lands in season totals after the final regular-season week grades.
+- The team's weekly ATS results use the same source/half-point rules as
+  everything else; games the team plays that aren't on any slate are still
+  tracked (the agent records the team's line and result each week).
+
+### 5.11 Money Tracking
 
 - League settings: buy-in amount, weekly winner payout (amount **TBD** — build
   the field, leave configurable), season payout split (default 75/25 for
@@ -332,24 +403,23 @@ ties are broken by boosted-pick record (most correct boosted picks; still tied
 - Venmo QR / handle display on the league page (same approach as the World Cup
   game). **No payment processing.**
 
-### 5.10 Notifications
+### 5.12 Notifications
 
-Build **templates and send-infrastructure for all four**, each behind a
-per-league toggle, **all defaulting to OFF** — Matt decides channels/enabling
-later:
+**Channel: SMS via the platform's existing Twilio integration** (Decision
+#24). All four notification types ship **enabled by default** (Decision #25),
+each behind a per-league toggle:
 
-| Event | Default content |
-|-------|-----------------|
-| **Week published** | "Week N is live — X games, picks lock starting [first kickoff]. [link]" |
-| **Deadline reminder** | Sent to members with unpicked games ~24h and ~2h before the first unlocked kickoff |
-| **Weekly recap** | Weekly winner, member's score/rank, standings movement |
-| **Commissioner nag** | Wednesday-noon unpublished-slate reminder (this one defaults ON — it's operational, not social) |
+| Event | Timing | Default content |
+|-------|--------|-----------------|
+| **Week published** | On publish | "Week N is live — X games, picks lock starting [first kickoff]. [link]" |
+| **Deadline reminder** | ~24h and ~2h before the member's first unlocked, unpicked kickoff | Sent only to members with unpicked games |
+| **Weekly recap** | **When the week fully grades** — not a fixed day. Usually Sunday; early-season weeks with Monday games recap Tuesday morning | Weekly winner, member's score/rank, standings movement |
+| **Commissioner nag** | Wednesday noon CT if unpublished, daily until published | Operational reminder to Matt |
 
-Channels: SMS via existing Twilio integration; email requires adding a
-provider (Resend suggested) — flagged in §10. Template copy lives in code,
-channel-agnostic (short-form renders for SMS, long-form for email).
+Template copy lives in code, channel-agnostic, so email (e.g. Resend) can be
+added later without redesign.
 
-### 5.11 Admin Dashboard
+### 5.13 Admin Dashboard
 
 `/cfb/admin` (league-scoped, commissioner-only):
 
@@ -402,12 +472,13 @@ create table public.cfb_leagues (
   settings jsonb not null default '{
     "boost_count": 2,
     "boost_multiplier": 3,
-    "boosts_allowed_on_combo": true,
+    "boost_eligible_section_types": ["spread"],
     "buy_in": null,
     "weekly_payout": null,
     "season_payout_split": [0.75, 0.25],
-    "notifications": {"week_published": false, "deadline_reminder": false,
-                      "weekly_recap": false, "commissioner_nag": true}
+    "ats_points_per_cover": 2,
+    "notifications": {"week_published": true, "deadline_reminder": true,
+                      "weekly_recap": true, "commissioner_nag": true}
   }'::jsonb,
   created_at timestamptz not null default now()
 );
@@ -450,9 +521,10 @@ create table public.cfb_games (
   frozen_total numeric,                  -- half-point O/U (combo sections)
   spread_source text not null,           -- 'ESPN BET' | 'manual' | ...
   status text not null default 'scheduled'
-    check (status in ('scheduled','final','voided')),
-  home_score int,
+    check (status in ('scheduled','in_progress','final','voided')),
+  home_score int,                        -- live-updated during in_progress
   away_score int,
+  game_clock text,                       -- display only, e.g. 'Q3 8:42'
   result_overridden boolean not null default false
 );
 
@@ -486,6 +558,24 @@ create table public.cfb_picks (
   unique (member_id, game_id)
 );
 
+create table public.cfb_ats_teams (
+  id uuid primary key default gen_random_uuid(),
+  member_id uuid not null references public.cfb_league_members(id) on delete cascade,
+  team text not null,                    -- Power 4 + Notre Dame, validated in app
+  locked_at timestamptz,                 -- set at Week 1 first kickoff
+  unique (member_id)
+);
+
+create table public.cfb_ats_results (    -- one row per ATS team per week
+  id uuid primary key default gen_random_uuid(),
+  league_id uuid not null references public.cfb_leagues(id) on delete cascade,
+  team text not null,
+  week_number int not null,
+  frozen_spread numeric,                 -- team's line that week (half-point)
+  covered boolean,                       -- null = bye/void
+  unique (league_id, team, week_number)
+);
+
 create table public.cfb_audit_log (
   id uuid primary key default gen_random_uuid(),
   league_id uuid not null references public.cfb_leagues(id) on delete cascade,
@@ -516,9 +606,10 @@ counters, so re-grades are always safe.
 
 | Route | Method | Purpose | Trigger |
 |-------|--------|---------|---------|
-| `/api/cfb/pull-lines` | POST | Tuesday agent: rankings + schedule + odds → frozen board + suggested slate | Vercel cron `0 13 * * 2` (Tue 8am CT) + admin re-pull button |
-| `/api/cfb/sync-scores` | POST | Fetch finals, grade completed games | Vercel cron `0 4 * * 0` (Sat 11pm CT) and `0 13 * * 0` (Sun 8am CT) + admin button |
-| `/api/cfb/nag` | POST | Wednesday unpublished-slate reminder | Vercel cron `0 17 * * 3` (Wed noon CT) |
+| `/api/cfb/pull-lines` | POST | Tuesday agent: rankings + schedule + odds → frozen board + suggested slate; also records ATS teams' weekly lines | Vercel cron `0 13 * * 2` (Tue 8am CT) + admin re-pull button |
+| `/api/cfb/sync-scores` | POST | Live score ingestion + grade games as they go final; sends weekly recap when the week fully grades | **Supabase pg_cron every 5 min**, self-gated to slate game windows (WC pattern) + admin button |
+| `/api/cfb/sweep` | POST | Backstop: reconcile any missed finals/re-grades | Vercel cron `0 13 * * 0` (Sun 8am CT) + Tuesday pre-pull check |
+| `/api/cfb/nag` | POST | Wednesday unpublished-slate reminder; deadline reminders | Vercel cron `0 17 * * 3` (Wed noon CT); reminder scheduling piggybacks on the 5-min tick during pick windows |
 | `/api/cfb/picks` | POST | Create/update a pick or boost (server-side lock check) | Member UI |
 | `/api/cfb/admin/*` | POST | Publish, void, override, manual line, league settings | Admin UI |
 
@@ -553,8 +644,12 @@ For each non-voided, final game, for each pick:
 
 - Incorrect pick, missing pick, or pick on a voided game: **0 points.**
   Nothing ever scores negative.
-- **Boost:** correct boosted pick scores `points_per_pick × boost_multiplier`
-  (default 3×). Incorrect boosted pick: 0.
+- **Boost:** only spread-section picks are boost-eligible. A correct boosted
+  pick scores `points_per_pick × boost_multiplier` (default 2 × 3 = 6).
+  Incorrect boosted pick: 0.
+- **Season ATS team (graded at season end):** +2 per weekly cover, summed;
+  wiped to 0 if the team's final regular-season ATS record is under 50%
+  (exactly 50% keeps the points). Added to season totals only, never weekly.
 - Weekly score = sum over the member's graded picks. Weekly winner(s) = top
   score; ties are co-winners and split the weekly payout.
 - Season score = sum of weekly scores. Season ties broken by boosted-pick
@@ -566,22 +661,11 @@ For each non-voided, final game, for each pick:
 
 Tracked here so the build doesn't stall on them; none block Phase 1 scaffolding.
 
-1. **Season ATS team (Phase 1.1).** Direction chosen: each member picks one
-   power-conference team preseason and earns points per cover, with some
-   under-50%-ATS penalty — but the exact rules (points per cover, wipe vs.
-   reduced penalty, lock date, duplicate team picks allowed?, which
-   conferences count as "big") need a design pass with Matt before building.
-2. **Weekly payout amount** — field exists, value TBD.
-3. **Notification channels** — templates for all four are built; Matt decides
-   which are enabled and whether SMS (Twilio, exists) or email (needs a
-   provider — suggest Resend) or both.
-4. **Boost interaction with "choose N of M" and combo sections** — default
-   spec says boosts apply anywhere; confirm during slate-builder build.
-5. **Week 1 provider bake-off** — validate ESPN odds coverage across a full
+1. **Weekly payout amount** — field exists; Matt sets the value before Week 1
+   (Decision #23).
+2. **Week 1 provider bake-off** — validate ESPN odds coverage across a full
    Top 25 board in preseason; if coverage is spotty, commit to The Odds API
    before kickoff (Decision #4 requires choosing once, before the season).
-6. **Brand spelling** — "BetzGames" per the platform; confirm the pick'em's
-   display name (e.g. "Betz CFB Pick'em").
 
 ---
 
@@ -589,8 +673,8 @@ Tracked here so the build doesn't stall on them; none block Phase 1 scaffolding.
 
 | Phase | Scope |
 |-------|-------|
-| **1 (MVP, this season)** | Google OAuth platform-wide; leagues + invites; Tuesday agent; slate builder + publish flow; picks with per-game locks + boosts; auto-grading + overrides; standings + week grid + race chart + heatmap; money tracking; notification templates (off); admin dashboard + audit trail. Regular season only. |
-| **1.1 (mid-season ok)** | Season ATS team (after design pass); remaining charts (ATS personality, boost report, lone wolf, consensus, Vegas overlay); enabled notifications per Matt's channel decision. |
+| **1 (MVP, this season)** | Google OAuth platform-wide; leagues + invites; Tuesday agent; slate builder + publish flow; picks with per-game locks + spread-only boosts; **live game-day leaderboard** (5-min score sync, projected standings, who-picked-what); auto-grading + overrides; standings + week grid + race chart + heatmap; money tracking; SMS notifications on (published/reminder/recap); admin dashboard + audit trail; **ATS team selection UI** (must exist before Week 1 lock). Regular season only. |
+| **1.1 (mid-season ok)** | Season ATS team tracking board + season-end scoring (rules settled — Decisions #21–22; only the lump-sum grading must exist by season end); remaining charts (ATS personality, boost report, lone wolf, consensus, Vegas overlay). |
 | **2 (next season)** | Postseason support (bowls/CFP slates, manual mode); season extras (Triple-Up, drop-lowest, props, ghost players as real leaderboard entries); public league creation if desired. |
 
 ---
