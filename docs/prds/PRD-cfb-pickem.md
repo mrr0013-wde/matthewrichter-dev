@@ -1,6 +1,6 @@
 # BetzGames — College Football Pick'em PRD
 
-**Version:** 1.2
+**Version:** 1.3
 **Date:** 2026-08-13
 **Author:** Matt Richter (drafted with Claude)
 **Audience:** Engineers building the CFB Pick'em game into the BetzGames platform (`mrr0013-wde/betzgames`)
@@ -101,8 +101,8 @@ Tue 8:00am CT: Agent pulls Top 25 games + spreads → freezes half-point lines
 - **No season-long extras** from prior years: no Triple-Up week, no
   drop-lowest-week, no Champion/Heisman props, no weekly bonus questions, no
   ghost players (Vegas/Underdog auto-entries). All are candidates for Phase 2.
-- **No native app / push notifications.** Responsive web only; SMS via Twilio
-  is the notification channel.
+- **No native app / push notifications.** Responsive web only; SMS via the
+  platform's SheetSMS bridge is the notification channel.
 
 ---
 
@@ -141,7 +141,7 @@ Second round, also 2026-08-13:
 | 21 | Season ATS scoring | +2 pts per cover; **all wiped** if the team finishes the regular season under 50% ATS |
 | 22 | Season ATS eligibility | Power 4 (SEC, Big Ten, Big 12, ACC) + Notre Dame; **duplicates allowed**; locks at Week 1 first kickoff; awarded as a **season-end lump sum** |
 | 23 | Weekly payout amount | Configurable field; Matt sets the number before Week 1 |
-| 24 | Notification channel | **SMS via Twilio** (existing platform integration) |
+| 24 | Notification channel | **SMS via the existing platform integration** — *v1.3 correction: that integration is the SheetSMS bridge (`src/lib/sms.ts`), NOT Twilio; the repo's `twilio` package is a legacy leftover the codebase guidance says not to build on* |
 | 25 | Notifications ON at launch | Week published, deadline reminder, weekly recap — recap sends only after the week fully grades (early-season weeks can include Monday games, so recap may land Tuesday morning those weeks) |
 | 26 | Boost eligibility | **Spread sections only** (the 2-pt games). Straight-up and GOTW picks cannot be boosted |
 | 27 | Brand | **Betz CFB Pick'em** |
@@ -171,8 +171,14 @@ Second round, also 2026-08-13:
   login across golf, World Cup, and CFB Pick'em.
 - **New platform work:** add **Google OAuth** as a sign-in method for the whole
   platform (Supabase Auth Google provider), alongside existing email+password.
-  Account linking: same email = same account (Supabase default behavior;
-  confirm `email_confirmed` handling for existing users).
+  Supabase automatically links verified identities with matching email
+  addresses.
+- **Profile completion (required for OAuth):** `profiles.username` is
+  `NOT NULL`, and signup also collects phone and emoji — none of which Google
+  OAuth supplies. OAuth-created accounts land on a profile-completion step
+  (username, emoji, phone for SMS) before proceeding. An invite URL must
+  survive the OAuth round-trip (carried in the redirect state) so joining
+  resumes after completion.
 - Signup remains open — anyone can create an account; league membership is
   what's gated (by invite).
 
@@ -287,8 +293,15 @@ post-publish mutations are *void game* and result overrides.
 ### 5.6 Scoring Engine
 
 Deterministic, idempotent function of `(frozen lines, final scores, picks,
-boosts, voids)` — safe to re-run any time (results are recomputed, not
-incremented, so admin overrides just trigger a re-grade). Full rules in §9.
+boosts, voids, the week's rules snapshot)` — safe to re-run any time (results
+are recomputed, not incremented, so admin overrides just trigger a re-grade).
+
+**Rules snapshot:** at publish, the week copies the league settings it will be
+graded under (`boost_count`, `boost_multiplier`, boost-eligible section types,
+weekly payout amount) into `cfb_weeks.rules_snapshot`. Grading reads the
+snapshot, never live league settings — changing a league setting mid-season
+affects only future weeks and can never silently re-score history. Full rules
+in §9.
 
 ### 5.7 Results Agent (Auto-Grading)
 
@@ -306,7 +319,9 @@ incremented, so admin overrides just trigger a re-grade). Full rules in §9.
   set a pick outcome; a re-grade runs automatically. Overrides are flagged in
   the audit trail.
 - Week reaches `graded` status when all non-voided slate games are final;
-  weekly winner(s) recorded at that moment.
+  weekly winner(s) and the payout amount (from the rules snapshot) are
+  persisted to `cfb_week_results` at that moment — the durable record the
+  money tracker and recap SMS read from.
 
 ### 5.8 Live Leaderboard (Game Days)
 
@@ -382,10 +397,15 @@ picks lock at the Week 1 first kickoff.
   of members can ride the same team.
 - Pick locks at the first kickoff of Week 1. Members who don't pick simply
   have no ATS team (0 bonus).
-- **Scoring: +2 points per regular-season game the team covers** (against the
-  closing half-point line, tracked weekly by the agent) — but if the team
-  finishes the regular season **under 50% ATS, the entire bonus is wiped to
-  0** (exactly 50% is safe).
+- **Scoring: +2 points per regular-season game the team covers** — against the
+  **same Tuesday-frozen half-point line** used everywhere else (the Tuesday
+  agent records each ATS team's line weekly; there is no separate closing-line
+  system) — but if the team finishes the regular season **under 50% ATS, the
+  entire bonus is wiped to 0** (exactly 50% is safe).
+- **Week 0 games are excluded from ATS results.** Selections don't lock until
+  Week 1's first kickoff, so counting Week 0 covers would let members pick
+  with the result already known. ATS tracking starts at Week 1, matching
+  Phase 1's Week 1 start.
 - Points are **not** mixed into weekly standings. A dedicated ATS-team board
   shows each team's running ATS record and the at-risk bonus all season; the
   lump sum lands in season totals after the final regular-season week grades.
@@ -406,9 +426,11 @@ picks lock at the Week 1 first kickoff.
 
 ### 5.12 Notifications
 
-**Channel: SMS via the platform's existing Twilio integration** (Decision
-#24). All four notification types ship **enabled by default** (Decision #25),
-each behind a per-league toggle:
+**Channel: SMS via the platform's existing SheetSMS bridge** (Decision #24 as
+corrected in v1.3) — `sendSms()` in `src/lib/sms.ts`, which posts to a Google
+Apps Script webhook (`SHEET_SMS_WEBHOOK_URL`/`SHEET_SMS_SECRET`). Do **not**
+build on the legacy `twilio` package. All four notification types ship
+**enabled by default** (Decision #25), each behind a per-league toggle:
 
 | Event | Timing | Default content |
 |-------|--------|-----------------|
@@ -419,6 +441,12 @@ each behind a per-league toggle:
 
 Template copy lives in code, channel-agnostic, so email (e.g. Resend) can be
 added later without redesign.
+
+**Idempotency:** every send is recorded in `cfb_notifications` with a unique
+deduplication key (`league/member/type/reference`, e.g.
+`week:<id>:recap:member:<id>`). A send only happens if inserting the delivery
+row succeeds, so cron retries and overlapping runs can never double-text
+anyone.
 
 ### 5.13 Admin Dashboard
 
@@ -445,8 +473,8 @@ the `betzgames` repo):
 - **Routes:** `src/app/cfb/*` (member pages), `src/app/cfb/admin/*`
   (commissioner), `src/app/api/cfb/*` (route handlers), mirroring how
   `/2026WC` and `/golf` are organized.
-- **Crons:** Vercel cron for weekly operations (Tuesday pull, Wednesday nag,
-  Sunday sweep); **Supabase pg_cron** for the 5-minute live score sync,
+- **Crons:** Vercel cron for scheduled operations (Tuesday pull, daily nag,
+  hourly reminders, Sunday sweep); **Supabase pg_cron** for the 5-minute live score sync,
   self-gated to game windows so it's idle the other ~6 days a week (see §8).
 - **Auth/middleware:** keep the existing pure cookie-check middleware — **no
   network calls in middleware** (the Edge 504 lesson from BetzGolf is
@@ -506,6 +534,8 @@ create table public.cfb_weeks (
   poll_used text not null,               -- 'AP' | 'CFP'
   status text not null default 'draft'
     check (status in ('draft','published','graded')),
+  rules_snapshot jsonb,                  -- league settings copied at publish;
+                                         -- grading reads THIS, never live settings
   pulled_at timestamptz,
   published_at timestamptz,
   graded_at timestamptz,
@@ -522,7 +552,10 @@ create table public.cfb_games (
   away_rank int,
   kickoff_at timestamptz not null,       -- the per-game lock time
   market_spread numeric,                 -- raw provider line (audit)
-  frozen_spread numeric not null,        -- half-point, negative = home favored
+  frozen_spread numeric,                 -- half-point, negative = home favored;
+                                         -- NULLABLE in draft (line missing, awaiting
+                                         -- manual entry); publish validation requires
+                                         -- it for every game in a published section
   frozen_total numeric,                  -- half-point O/U (combo sections)
   spread_source text not null,           -- 'ESPN BET' | 'manual' | ...
   status text not null default 'scheduled'
@@ -546,21 +579,55 @@ create table public.cfb_slate_games (
   section_id uuid not null references public.cfb_slate_sections(id) on delete cascade,
   game_id uuid not null references public.cfb_games(id) on delete cascade,
   position int not null,
-  primary key (section_id, game_id)
+  primary key (section_id, game_id),
+  unique (game_id)                       -- a game sits in at most ONE section
 );
 
 create table public.cfb_picks (
   id uuid primary key default gen_random_uuid(),
   member_id uuid not null references public.cfb_league_members(id) on delete cascade,
-  section_id uuid not null references public.cfb_slate_sections(id) on delete cascade,
-  game_id uuid not null references public.cfb_games(id) on delete cascade,
+  section_id uuid not null,
+  game_id uuid not null,
+  -- composite FK guarantees the pick's game actually belongs to its section:
+  foreign key (section_id, game_id)
+    references public.cfb_slate_games(section_id, game_id) on delete cascade,
   side text not null check (side in ('home','away')),
   total_side text check (total_side in ('over','under')),  -- combo sections only
   boosted boolean not null default false,
   points_awarded numeric,                -- set by grading; null = ungraded
-  outcome_overridden boolean not null default false,
+  override_outcome text
+    check (override_outcome in ('correct','incorrect')),   -- null = graded normally
+  override_points numeric,               -- points to award when overridden
+  override_reason text,
+  overridden_by uuid references public.profiles(id),
   updated_at timestamptz not null default now(),
   unique (member_id, game_id)
+);
+-- Cross-league integrity (member's league == section's week's league) can't be
+-- expressed as a plain FK; enforce it in a BEFORE INSERT/UPDATE trigger (or by
+-- routing all pick writes through one SECURITY DEFINER function that checks it
+-- atomically alongside the lock check).
+
+create table public.cfb_week_results (   -- durable weekly winner/payout record
+  id uuid primary key default gen_random_uuid(),
+  week_id uuid not null references public.cfb_weeks(id) on delete cascade,
+  member_id uuid not null references public.cfb_league_members(id) on delete cascade,
+  points numeric not null,
+  is_winner boolean not null default false,
+  payout_amount numeric,                 -- from the week's rules_snapshot; split on ties
+  payout_paid_at timestamptz,
+  unique (week_id, member_id)
+);
+
+create table public.cfb_notifications (  -- SMS delivery log = idempotency guard
+  id uuid primary key default gen_random_uuid(),
+  league_id uuid not null references public.cfb_leagues(id) on delete cascade,
+  member_id uuid references public.cfb_league_members(id) on delete cascade,
+  type text not null,                    -- 'week_published','deadline_reminder',...
+  dedupe_key text not null unique,       -- e.g. 'week:<id>:recap:member:<id>'
+  sent_at timestamptz not null default now(),
+  ok boolean not null,
+  error text
 );
 
 create table public.cfb_ats_teams (
@@ -598,12 +665,23 @@ counters, so re-grades are always safe.
 **Enforced invariants (DB or server layer):**
 
 - Pick writes rejected when `now() >= kickoff_at` or the game is voided.
-- `frozen_spread`/`frozen_total` must end in `.5`.
-- Boosted picks per member per week ≤ `settings.boost_count`.
+- Publish validation: every game in a published section has a non-null
+  `frozen_spread` ending in `.5` (and `frozen_total` for combo sections);
+  drafts may hold line-less games awaiting manual entry.
+- Boosted picks per member per week ≤ the week's `rules_snapshot.boost_count`,
+  and only in boost-eligible section types.
 - Picks per member per section ≤ `picks_required`.
 - No line/slate mutation on a `published` week except void + result override.
+- Pick writes verify member.league == week.league (trigger or single atomic
+  write function — see DDL comment).
 - RLS: members read only their league's data; other members' pick rows
   invisible until the pick's game has locked (kickoff passed).
+- **Migrations include explicit Data API grants alongside RLS policies.**
+  Supabase applies grants-required-by-default to existing projects on
+  **2026-10-30** — mid-season for us — after which new tables (e.g. the
+  Phase 1.1 ATS tables) are invisible to the Data API without explicit
+  `grant` statements. Make grants part of every table's migration from day
+  one.
 
 ---
 
@@ -611,18 +689,25 @@ counters, so re-grades are always safe.
 
 | Route | Method | Purpose | Trigger |
 |-------|--------|---------|---------|
-| `/api/cfb/pull-lines` | POST | Tuesday agent: rankings + schedule + odds → frozen board + suggested slate; also records ATS teams' weekly lines | Vercel cron `0 13 * * 2` (Tue 8am CT) + admin re-pull button |
+| `/api/cfb/pull-lines` | GET (cron) / POST (admin) | Tuesday agent: rankings + schedule + odds → frozen board + suggested slate; also records ATS teams' weekly lines | Vercel cron `0 13 * * 2` (Tue 8am CT) + admin re-pull button |
 | `/api/cfb/sync-scores` | POST | Live score ingestion + grade games as they go final; sends weekly recap when the week fully grades | **Supabase pg_cron every 5 min**, self-gated to slate game windows (WC pattern) + admin button |
-| `/api/cfb/sweep` | POST | Backstop: reconcile any missed finals/re-grades | Vercel cron `0 13 * * 0` (Sun 8am CT) + Tuesday pre-pull check |
-| `/api/cfb/nag` | POST | Wednesday unpublished-slate reminder | Vercel cron `0 17 * * 3` (Wed noon CT), daily until published |
-| `/api/cfb/remind` | POST | Deadline reminders (~24h and ~2h before a member's first unlocked, unpicked kickoff) | Hourly Vercel cron, self-gated to published weeks with upcoming kickoffs |
+| `/api/cfb/sweep` | GET (cron) / POST (admin) | Backstop: reconcile any missed finals/re-grades | Vercel cron `0 13 * * 0` (Sun 8am CT) + Tuesday pre-pull check |
+| `/api/cfb/nag` | GET | Unpublished-slate reminder to commissioner | **Daily** Vercel cron `0 17 * * *` (noon CT); handler self-gates — sends only from Wednesday onward while the week is unpublished |
+| `/api/cfb/remind` | GET | Deadline reminders (~24h and ~2h before a member's first unlocked, unpicked kickoff) | Hourly Vercel cron, self-gated to published weeks with upcoming kickoffs |
 | `/api/cfb/picks` | POST | Create/update a pick or boost (server-side lock check) | Member UI |
 | `/api/cfb/admin/*` | POST | Publish, void, override, manual line, league settings | Admin UI |
 
-Cron endpoints authenticate via `CRON_SECRET` header check, matching the
-existing `api/cron/*` pattern in the repo. Crons run year-round but the
-handlers self-gate to the configured season window (the WC sync's
-"do nothing off-hours" pattern).
+**Cron mechanics (match the repo's existing patterns exactly):** Vercel cron
+invokes routes with **GET** and an `Authorization: Bearer ${CRON_SECRET}`
+header — so cron-triggered routes export a `GET` handler (and a `POST` for
+the equivalent admin button), as `api/cron/auto-start-drafts` and
+`api/datagolf/sync` already do. The pg_cron-driven `sync-scores` route uses
+**POST** with the `x-internal-secret` header, matching `api/wc/*`; its
+schedule lives in the Supabase `cron.job` table, not in `vercel.json`. Crons
+run year-round but handlers self-gate to the configured season window (the WC
+sync's "do nothing off-hours" pattern). All sends are deduplicated through
+`cfb_notifications` (§5.12), so overlapping or retried cron runs are
+harmless.
 
 ---
 
@@ -652,7 +737,10 @@ For each non-voided, final game, for each pick:
   Nothing ever scores negative.
 - **Boost:** only spread-section picks are boost-eligible. A correct boosted
   pick scores `points_per_pick × boost_multiplier` (default 2 × 3 = 6).
-  Incorrect boosted pick: 0.
+  Incorrect boosted pick: 0. Boost count/multiplier come from the week's
+  `rules_snapshot`, never live league settings.
+- **Overrides:** a pick with `override_outcome` set scores `override_points`
+  and is skipped by normal grading; everything else re-grades normally.
 - **Season ATS team (graded at season end):** +2 per weekly cover, summed;
   wiped to 0 if the team's final regular-season ATS record is under 50%
   (exactly 50% keeps the points). Added to season totals only, never weekly.
@@ -679,7 +767,7 @@ Tracked here so the build doesn't stall on them; none block Phase 1 scaffolding.
 
 | Phase | Scope |
 |-------|-------|
-| **1 (MVP, this season)** | Google OAuth platform-wide; leagues + invites; Tuesday agent; slate builder + publish flow; picks with per-game locks + spread-only boosts; **live game-day leaderboard** (5-min score sync, projected standings, who-picked-what); auto-grading + overrides; standings + week grid + race chart + heatmap; money tracking; SMS notifications on (published/reminder/recap); admin dashboard + audit trail; **ATS team selection UI** (must exist before Week 1 lock). Regular season only. |
+| **1 (MVP, this season)** | Google OAuth platform-wide **with profile-completion flow** (username/emoji/phone; invite URL survives the OAuth round-trip); leagues + invites; Tuesday agent; slate builder + publish flow (with rules snapshot); picks with per-game locks + spread-only boosts; **live game-day leaderboard** (5-min score sync, projected standings, who-picked-what); auto-grading + overrides; standings + week grid + race chart + heatmap; money tracking (incl. `cfb_week_results`); SheetSMS notifications on (published/reminder/recap) with delivery-log dedupe; admin dashboard + audit trail; **ATS team selection UI** (must exist before Week 1 lock); **automated tests for the scoring engine** (the platform has no test suite — this feature's game/money logic is where one starts: half-point freezing, grading per section type, boosts, voids, overrides, snapshots). Regular season only. |
 | **1.1 (mid-season ok)** | Season ATS team tracking board + season-end scoring (rules settled — Decisions #21–22; only the lump-sum grading must exist by season end); remaining charts (ATS personality, boost report, lone wolf, consensus, Vegas overlay). |
 | **2 (next season)** | Postseason support (bowls/CFP slates, manual mode); season extras (Triple-Up, drop-lowest, props, ghost players as real leaderboard entries); public league creation if desired. |
 
@@ -687,14 +775,26 @@ Tracked here so the build doesn't stall on them; none block Phase 1 scaffolding.
 
 ## 12. Environment Variables
 
-New (beyond existing Supabase/Twilio/Vercel vars already in the repo):
+New (beyond existing Supabase/SheetSMS/Vercel vars already in the repo):
 
 | Var | Purpose |
 |-----|---------|
-| `CRON_SECRET` | Already exists — reuse for `/api/cfb/*` cron auth |
+| `CRON_SECRET` | Already exists — reuse for `/api/cfb/*` cron auth (Bearer on GET) |
+| `SHEET_SMS_WEBHOOK_URL` / `SHEET_SMS_SECRET` | Already exist — the SheetSMS bridge used for all SMS |
 | `ODDS_API_KEY` | Only if the Week-1 bake-off selects The Odds API over ESPN |
-| `RESEND_API_KEY` | Only if email notifications are enabled |
+| `RESEND_API_KEY` | Only if email notifications are added later |
 | Google OAuth client ID/secret | Configured in Supabase Auth dashboard, not app env |
+
+---
+
+## Revision History
+
+| Version | Changes |
+|---------|---------|
+| 1.0 | Initial PRD from Matt's first-round Q&A (Decisions #1–20) |
+| 1.1 | Second-round decisions (#21–28): ATS team rules, SheetSMS-era notification choices, spread-only boosts, brand, live game-day leaderboard |
+| 1.2 | Internal QC: live-leaderboard consistency, dedicated reminder cron, version/cross-ref fixes |
+| 1.3 | External QC (verified against the betzgames codebase): ATS uses Tuesday-frozen lines + Week 0 excluded; **SMS corrected from Twilio to the SheetSMS bridge**; Vercel crons use GET + Bearer auth; nag cron made daily/self-gated; per-week `rules_snapshot`; pick-schema integrity (one-section-per-game, composite FK, league-consistency check); structured override fields; nullable draft lines with publish validation; `cfb_week_results` + `cfb_notifications` idempotency tables; OAuth profile-completion flow; scoring test suite in Phase 1; explicit Supabase Data API grants in migrations (2026-10-30 platform change) |
 
 ---
 
