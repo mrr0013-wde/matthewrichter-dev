@@ -60,8 +60,9 @@ Tue 8:00am CT: Agent pulls Top 25 games + spreads → freezes half-point lines
     → Commissioner curates slate (suggested default provided) → Publish
     → Members pick (each game open until its own kickoff)
     → Games lock at kickoff; picks become visible to the league
-    → Sat night + Sun morning: Results agent grades picks from final scores
-    → Standings update; weekly winner recorded
+    → Game days: live leaderboard (5-min score sync, projected standings)
+    → Games grade as they go final; Sunday + Tuesday backstop sweeps
+    → Standings update; weekly winner recorded; recap sent when week grades
 ```
 
 ---
@@ -444,14 +445,18 @@ the `betzgames` repo):
 - **Routes:** `src/app/cfb/*` (member pages), `src/app/cfb/admin/*`
   (commissioner), `src/app/api/cfb/*` (route handlers), mirroring how
   `/2026WC` and `/golf` are organized.
-- **Crons:** Vercel cron for the Tuesday pull and results sweeps (see §8).
-  Low-frequency only — nothing like live polling.
+- **Crons:** Vercel cron for weekly operations (Tuesday pull, Wednesday nag,
+  Sunday sweep); **Supabase pg_cron** for the 5-minute live score sync,
+  self-gated to game windows so it's idle the other ~6 days a week (see §8).
 - **Auth/middleware:** keep the existing pure cookie-check middleware — **no
   network calls in middleware** (the Edge 504 lesson from BetzGolf is
   documented on the portfolio site and in repo history).
 - **Client data discipline:** standings and slates are server-rendered reads;
   no client polling loops (the BetzGolf Supabase connection-saturation lesson).
-  Everything is effectively static between grading runs.
+  Off game days everything is effectively static; on game days the live
+  leaderboard revalidates against cached server data on a ~60s interval —
+  freshness is owned by the single server-side sync, never by per-client
+  queries.
 - **Timezones:** all timestamps stored UTC; kickoff display localized;
   league-operational times (Tuesday pull, Wednesday nag) defined in CT.
 
