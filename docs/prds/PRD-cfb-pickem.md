@@ -1,6 +1,6 @@
 # BetzGames — College Football Pick'em PRD
 
-**Version:** 1.0
+**Version:** 1.2
 **Date:** 2026-08-13
 **Author:** Matt Richter (drafted with Claude)
 **Audience:** Engineers building the CFB Pick'em game into the BetzGames platform (`mrr0013-wde/betzgames`)
@@ -122,7 +122,7 @@ during build; anything genuinely open is in [§10](#10-open-questions).
 | 7 | Agent schedule | Tuesdays 8:00am CT, automatic; lines frozen at pull |
 | 8 | Safety valves | Manual line entry, void canceled games, pre-publish re-pull; Week 0/postseason are out of scope for Phase 1 |
 | 9 | Week format | Fully flexible slate builder: all section types + "choose N of M" |
-| 10 | Boosts | Player boosts 2 picks per week at 3×; wrong boosted picks score 0 (never negative) |
+| 10 | Boosts | Player boosts 2 picks per week at 3×; wrong boosted picks score 0 (never negative) *(refined by #26: spread sections only)* |
 | 11 | Season ATS team | Points-per-cover variant, wanted, but design deferred (Phase 1.1 — see §10) |
 | 12 | Deadlines | Per-game locks at each kickoff; unpicked games score 0 |
 | 13 | Season extras | None in v1 |
@@ -614,7 +614,8 @@ counters, so re-grades are always safe.
 | `/api/cfb/pull-lines` | POST | Tuesday agent: rankings + schedule + odds → frozen board + suggested slate; also records ATS teams' weekly lines | Vercel cron `0 13 * * 2` (Tue 8am CT) + admin re-pull button |
 | `/api/cfb/sync-scores` | POST | Live score ingestion + grade games as they go final; sends weekly recap when the week fully grades | **Supabase pg_cron every 5 min**, self-gated to slate game windows (WC pattern) + admin button |
 | `/api/cfb/sweep` | POST | Backstop: reconcile any missed finals/re-grades | Vercel cron `0 13 * * 0` (Sun 8am CT) + Tuesday pre-pull check |
-| `/api/cfb/nag` | POST | Wednesday unpublished-slate reminder; deadline reminders | Vercel cron `0 17 * * 3` (Wed noon CT); reminder scheduling piggybacks on the 5-min tick during pick windows |
+| `/api/cfb/nag` | POST | Wednesday unpublished-slate reminder | Vercel cron `0 17 * * 3` (Wed noon CT), daily until published |
+| `/api/cfb/remind` | POST | Deadline reminders (~24h and ~2h before a member's first unlocked, unpicked kickoff) | Hourly Vercel cron, self-gated to published weeks with upcoming kickoffs |
 | `/api/cfb/picks` | POST | Create/update a pick or boost (server-side lock check) | Member UI |
 | `/api/cfb/admin/*` | POST | Publish, void, override, manual line, league settings | Admin UI |
 
