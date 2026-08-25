@@ -20,11 +20,15 @@ var LOOKBACK_DAYS = 2; // daily run scans the last 2 days (overlap is fine — t
 
 // Patterns that classify a job-hunt email. Order matters: first match wins.
 var RULES = [
-  { kind: "rejected", re: /(unfortunately|not (be )?moving forward|other candidates|no longer under consideration|decided to (pursue|proceed with) other)/i },
+  { kind: "rejected", re: /(not (be )?moving forward|no longer under consideration|decided to (pursue|proceed with) other|other qualified candidates|regret to inform)/i },
   { kind: "offer", re: /(offer letter|pleased to offer|extend an offer)/i },
   { kind: "interview", re: /(interview (confirmation|scheduled|reminder|invitation)|schedule (your|an) interview|phone screen)/i },
   { kind: "applied", re: /(thank you for applying|application (received|submitted|complete)|we('ve| have) received your application|thank you for your (application|interest in))/i },
 ];
+
+// A classified email must ALSO look job-related (or come from an ATS) —
+// keeps vet appointments and newsletters out of the tracker.
+var JOB_CONTEXT_RE = /\b(application|applied|applying|position|role|candidate|candidacy|interview|recruiter|recruiting|hiring|opportunity)\b/i;
 
 // Senders that are always job-related even without the phrases above.
 var ATS_SENDER_RE = /(greenhouse\.io|lever\.co|ashbyhq\.com|myworkday(jobs)?\.com|icims\.com|smartrecruiters\.com|jobvite\.com|talentacquisition@|careers@|recruiting@|no-?reply@.*jobs)/i;
@@ -45,6 +49,7 @@ function dailySync() {
       var m = msgs[i];
       if (m.getDate().getTime() < Date.now() - LOOKBACK_DAYS * 86400000) continue;
       var from = m.getFrom() || "";
+      if (/matthew\.r\.richter@gmail\.com/i.test(from)) continue; // skip my own sent mail
       var subject = m.getSubject() || "";
       var body = "";
       try { body = m.getPlainBody().slice(0, 4000); } catch (e) {}
@@ -57,6 +62,8 @@ function dailySync() {
       // ATS sender with no matched phrase → still worth logging as an update
       if (!kind && ATS_SENDER_RE.test(from)) kind = "update";
       if (!kind) continue;
+      // require job context unless it came from a known ATS
+      if (!ATS_SENDER_RE.test(from) && !JOB_CONTEXT_RE.test(haystack)) continue;
 
       // Guess the company: display name of sender, else the email domain.
       var nameMatch = from.match(/^"?([^"<]+)"?\s*</);

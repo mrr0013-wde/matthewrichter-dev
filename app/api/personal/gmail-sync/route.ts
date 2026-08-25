@@ -38,15 +38,23 @@ export async function POST(req: NextRequest) {
   let created = 0;
   let updated = 0;
 
+  // fuzzy company matching in code — "toasttab" must find "Toast",
+  // "Capital One" must find "Capital One" etc.
+  const all = await rest<Application[]>(
+    `personal_applications?select=*&order=last_activity.desc.nullslast`
+  );
+  const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+
   for (const ev of events) {
     const company = (ev.company || "").trim();
     if (!company) continue;
     const date = (ev.date || new Date().toISOString()).slice(0, 10);
 
-    const matches = await rest<Application[]>(
-      `personal_applications?company=ilike.${encodeURIComponent("*" + company + "*")}&select=*&order=last_activity.desc.nullslast&limit=1`
-    );
-    const app = matches?.[0];
+    const nc = norm(company);
+    const app = all.find((a) => {
+      const na = norm(a.company);
+      return na && nc && (na.includes(nc) || nc.includes(na));
+    });
 
     if (app) {
       const patch: Record<string, unknown> = {

@@ -58,6 +58,28 @@ export async function addTodo(formData: FormData) {
   revalidatePath("/personal/job-hunting");
 }
 
+export async function addFollowUpTodo(applicationId: number) {
+  if (!(await isAuthed())) return;
+  if (!applicationId) return;
+  const apps = await rest<{ id: number; company: string; role: string }[]>(
+    `personal_applications?id=eq.${applicationId}&select=id,company,role`
+  );
+  const app = apps?.[0];
+  if (!app) return;
+  const due = new Date();
+  due.setDate(due.getDate() + 3);
+  await rest(`personal_todos`, {
+    method: "POST",
+    body: JSON.stringify({
+      title: `Follow up: ${app.company} (${app.role})`,
+      due_date: due.toISOString().slice(0, 10),
+      application_id: app.id,
+    }),
+    prefer: "return=minimal",
+  });
+  revalidatePath("/personal/job-hunting");
+}
+
 export async function completeTodo(formData: FormData) {
   if (!(await isAuthed())) return;
   const id = Number(formData.get("id"));

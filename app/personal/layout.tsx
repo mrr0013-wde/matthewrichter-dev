@@ -16,30 +16,18 @@ export default async function PersonalLayout({
   if (!authed) {
     return (
       <main className="min-h-screen flex items-center justify-center px-6">
-        <form
-          method="POST"
-          action="/api/personal/login"
-          className="w-full max-w-sm rounded-2xl border border-[#262626] bg-[#141414] p-8"
-        >
+        <div className="w-full max-w-sm rounded-2xl border border-[#262626] bg-[#141414] p-8 text-center">
           <p className="text-blue-500 font-mono text-xs tracking-wider mb-2">
             PRIVATE AREA
           </p>
-          <h1 className="text-2xl font-black mb-6">Enter password</h1>
-          <input
-            type="password"
-            name="password"
-            autoFocus
-            autoComplete="current-password"
-            className="w-full rounded-lg border border-[#262626] bg-[#0a0a0a] px-4 py-3 mb-4 text-[#ededed] focus:border-blue-500 focus:outline-none"
-            placeholder="Password"
-          />
-          <button
-            type="submit"
-            className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg transition-colors"
+          <h1 className="text-2xl font-black mb-6">Matthew only 🔒</h1>
+          <a
+            href="/api/personal/auth/login"
+            className="block w-full px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg transition-colors"
           >
-            Unlock
-          </button>
-        </form>
+            Sign in with Google
+          </a>
+        </div>
       </main>
     );
   }
