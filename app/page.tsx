@@ -11,11 +11,14 @@ export default function Home() {
             <a href="#projects" className="hover:text-white transition-colors">
               Projects
             </a>
-            <a href="#approach" className="hover:text-white transition-colors">
+            <a href="#experience" className="hover:text-white transition-colors hidden sm:inline">
+              Experience
+            </a>
+            <a href="#approach" className="hover:text-white transition-colors hidden sm:inline">
               Approach
             </a>
             <a
-              href="mailto:matthew.r.richter@gmail.com"
+              href="#contact"
               className="text-blue-500 hover:text-blue-400 transition-colors font-medium"
             >
               Contact
@@ -26,10 +29,10 @@ export default function Home() {
 
       {/* Hero */}
       <section className="pt-32 pb-20 px-6">
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-12 items-center">
           <div className="max-w-3xl">
             <p className="text-blue-500 font-mono text-sm mb-4 tracking-wider">
-              PRODUCT BUILDER
+              SENIOR PRODUCT MANAGER &middot; PRODUCT BUILDER
             </p>
             <h1 className="text-4xl sm:text-6xl font-black tracking-tight leading-[1.1] mb-6">
               I turn ideas into
@@ -37,17 +40,59 @@ export default function Home() {
               shipped products.
             </h1>
             <p className="text-lg sm:text-xl text-[#a3a3a3] leading-relaxed max-w-2xl mb-8">
-              Product manager who builds. I scope features, design systems,
-              manage production infrastructure, and ship real software used by
-              real people &mdash; leveraging AI-assisted development to move at
-              startup speed as a solo operator.
+              Senior Product Manager who owns products end to end &mdash; from
+              customer discovery, roadmap strategy, and requirements writing to
+              launch, measurement, and iteration. I&apos;ve shipped complex
+              user-facing products, launched LLM-powered capabilities to
+              enterprise customers, and built{" "}
+              <a
+                href="https://www.doudizhu.cards"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-500 hover:text-blue-400 font-medium"
+              >
+                doudizhu.cards
+              </a>
+              , a mobile-first global card game powered by AI.
             </p>
+            <div className="flex flex-wrap items-center gap-4 mb-8">
+              <a
+                href="https://www.doudizhu.cards"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-6 py-3 bg-[#c0392b] hover:bg-[#96281b] text-white font-bold rounded-lg transition-colors shadow-lg shadow-[#c0392b]/25"
+              >
+                &#127183; Play Dou Dizhu
+              </a>
+              <a
+                href="#experience"
+                className="px-6 py-3 border border-[#262626] hover:border-[#404040] text-[#a3a3a3] hover:text-white font-bold rounded-lg transition-colors"
+              >
+                See my experience
+              </a>
+            </div>
             <div className="flex flex-wrap gap-3 text-sm">
-              {["Product Strategy", "Full-Stack Shipping", "AI-Assisted Development", "Supabase / Vercel / Fly.io"].map((t) => (
+              {["End-to-End Product Ownership", "Product Strategy & Roadmapping", "Generative AI Products", "Full-Stack Shipping"].map((t) => (
                 <span key={t} className="px-3 py-1.5 rounded-full border border-[#262626] text-[#a3a3a3]">
                   {t}
                 </span>
               ))}
+            </div>
+          </div>
+
+          {/* Fanned Dou Dizhu cards */}
+          <div className="hero-cards" aria-hidden="true">
+            <div className="pcard pcard-1">
+              <span className="pc-corner">3<em>&spades;</em></span>
+              <span className="pc-pip">&spades;</span>
+            </div>
+            <div className="pcard pcard-2">
+              <span className="pc-corner pc-red">A<em>&hearts;</em></span>
+              <span className="pc-pip pc-red">&hearts;</span>
+            </div>
+            <div className="pcard pcard-3">
+              <span className="pc-corner pc-red">&#26007;</span>
+              <span className="pc-pip pc-red">&#22320;&#20027;</span>
             </div>
           </div>
         </div>
@@ -62,6 +107,36 @@ export default function Home() {
           <h2 className="text-3xl sm:text-4xl font-black mb-12">Projects</h2>
 
           <div className="space-y-8">
+            {/* Dou Dizhu — the flagship */}
+            <ProjectCard
+              flagship
+              stats={[
+                { num: "40,000+", label: "real plays the bots learn from" },
+                { num: "Tens of thousands", label: "of possible endings searched per move" },
+                { num: "Hundreds", label: "of identical deals a new bot must win before it ships" },
+                { num: "iPhone SE", label: "the smallest real viewport it's tuned for" },
+              ]}
+              icon="&#127183;"
+              title="Dou Dizhu — doudizhu.cards"
+              subtitle="Free online card room for China's most popular card game, powered by AI"
+              href="https://www.doudizhu.cards"
+              linkLabel="doudizhu.cards"
+              description='My flagship: a free, no-install card room for Dou Dizhu (&ldquo;Fight the Landlord&rdquo;). Created and owned end to end &mdash; from roadmap and mobile UX through implementation, launch, measurement, and iteration &mdash; taking a prototype into a real browser product with onboarding, public and private rooms, friend leaderboards, achievements, and a shared Daily Deal. The AI opponents actually put up a fight.'
+              productDecisions={[
+                "Took a prototype into a no-install browser product with onboarding, public and private rooms, friend leaderboards, achievements, and a shared Daily Deal everyone plays",
+                "Room-based multiplayer with shareable join codes — send a link and play instantly, no account required",
+                "Iterated the mobile experience across real iPhone viewports down to the iPhone SE",
+                "Full Chinese card game rule engine: bombs, rockets, chain pairs, sequential triples with kickers — every legal hand type validated server-side",
+              ]}
+              technicalDetails={[
+                "AI bots search tens of thousands of possible endings per move and learn from 40,000+ real plays",
+                "Champion gauntlet: no new bot version ships unless it beats the reigning champion across hundreds of identical deals",
+                "Every play instrumented with telemetry — bot mistakes ranked by frequency and win-rate impact to prioritize the roadmap",
+                "Node.js + WebSocket server for real-time gameplay, hosted on Fly.io; server-authoritative game logic and persistent state so in-progress games survive restarts",
+              ]}
+              tags={["AI Game Bots", "Telemetry-Driven Roadmap", "Mobile-First UX", "Node.js", "WebSockets", "Fly.io", "Real-time Multiplayer"]}
+            />
+
             {/* BetzGolf */}
             <ProjectCard
               icon="&#9971;"
@@ -110,27 +185,184 @@ export default function Home() {
               ]}
               tags={["Next.js", "TypeScript", "Supabase", "FIFA Annex C Logic", "Bracket Engine", "Real-time Leaderboard"]}
             />
+          </div>
+        </div>
+      </section>
 
-            {/* Dou Dizhu */}
-            <ProjectCard
-              icon="&#127183;"
-              title="Dou Dizhu"
-              subtitle="Real-time multiplayer card game"
-              href="https://dou-dizhu-mrr.fly.dev"
-              linkLabel="dou-dizhu-mrr.fly.dev"
-              description='A web-based implementation of Dou Dizhu (&ldquo;Fight the Landlord&rdquo;), China&apos;s most popular card game. Three players join a room, bid to become the landlord, then play in real-time with full rule enforcement, hand validation, and persistent game state.'
-              productDecisions={[
-                "Room-based multiplayer with shareable join codes — send a link and play instantly, no account required",
-                "Full Chinese card game rule engine: bombs, rockets, chain pairs, sequential triples with kickers — every legal hand type validated server-side",
-                "Persistent game state via mounted volumes so in-progress games survive server restarts",
+      {/* Experience */}
+      <section id="experience" className="py-20 px-6 border-t border-[#262626]">
+        <div className="max-w-5xl mx-auto">
+          <p className="text-blue-500 font-mono text-sm mb-2 tracking-wider">
+            WHERE I&apos;VE WORKED
+          </p>
+          <h2 className="text-3xl sm:text-4xl font-black mb-12">Experience</h2>
+
+          <div className="space-y-8">
+            <JobCard
+              company="Umbrage, part of Bain &amp; Company"
+              role="Senior Product Manager"
+              meta="May 2024 – Present · Greenville, SC (Remote)"
+              groups={[
+                {
+                  heading: "Engagement with USAA",
+                  bullets: [
+                    "Owned product strategy, roadmap, backlog, and success metrics for USAA's member-facing ecosystem, translating a five-year target of more than 10 million unique visits into prioritized initiatives",
+                    "Partnered with design and a multi-pod team of more than 40 front-end and back-end developers to ship intricate member-facing features from concept through launch and iteration, accelerating release cadence despite ongoing scope changes from external partners",
+                    "Defined and implemented a reusable partner integration framework of reference workflows, templates, and system readiness milestones, so that onboarding a new partner became repeatable configuration rather than a bespoke build each time",
+                    "Used member research and survey data on digital vs. in-person preferences to form and validate product hypotheses, champion member needs, and influence roadmap decisions across related initiatives",
+                    "Managed and mentored associate product managers and coached cross-functional teams on how to optimize delivery, refine backlogs, and manage stakeholders",
+                    "Introduced agile process improvements that lifted sprint predictability and velocity by 20%",
+                  ],
+                },
+                {
+                  heading: "Engagement with Capital One",
+                  bullets: [
+                    "Defined the product vision and strategy for Capital One's transformation of its internal core Transaction Authorization and Restrictions platforms; focused on improving ledger integrity and customer-facing capabilities",
+                    "Created PRDs for the transformation initiative; defined a new real-time rules engine integrating Overdraft and Stop Payments systems to replace legacy processing logic",
+                    "Translated PRDs into actionable epics and user stories, roadmapped the full Jira backlog into a cross-functional execution plan, and partnered with QA and internal stakeholders to ensure development readiness",
+                    "Worked with cross-functional teams in a highly regulated environment to define requirements and mitigate regulatory and technical risk before automated decisioning went to production",
+                  ],
+                },
               ]}
-              technicalDetails={[
-                "Node.js + WebSocket server for real-time gameplay — sub-100ms latency between players",
-                "Hosted on Fly.io with auto-start/auto-stop machines to minimize cost during idle periods",
-                "Server-authoritative game logic prevents cheating — all hand validation and turn management runs server-side",
-              ]}
-              tags={["Node.js", "WebSockets", "Fly.io", "Docker", "Real-time Multiplayer", "Game Logic Engine"]}
             />
+
+            <JobCard
+              company="Simplr"
+              role="Senior Product Manager"
+              meta="Apr 2023 – Apr 2024 · Greenville, SC (Remote)"
+              groups={[
+                {
+                  bullets: [
+                    "Defined and shipped LLM-powered capabilities to enterprise customers, aligning machine learning, customer success, engineering, and quality assurance on product requirements, evaluation criteria, and quality and safety thresholds for launch",
+                    "Standardized and optimized critical path work processes across seven teams, enhancing communication channels between them, which led to a 20% increase in average sprint velocity",
+                    "Consolidated disparate roadmaps from multiple engineering and ML teams into a cohesive and coherent plan with a clear strategic direction for senior leadership and stakeholders",
+                    'Orchestrated cross-functional "Quarterly Goal" meetings, which led to consistent >100% goal completion',
+                  ],
+                },
+              ]}
+            />
+
+            <JobCard
+              company="Capital One"
+              role="Principal Associate, Agile Delivery Lead (Proxy and DNS, DHCP, IPAM) &amp; Product Owner"
+              meta="Sep 2021 – Mar 2023 · Greenville, SC (Remote)"
+              groups={[
+                {
+                  bullets: [
+                    'Awarded "Product Idea Most Likely to be Patented" in Capital One\'s Product Bootcamp capstone project',
+                    "Established program requirements, key metrics, strategic drivers, and training for a new product used by 20+ engineering teams, resulting in rapid onboarding three months ahead of schedule",
+                    "Built an OKR-driven dashboard used by 10+ engineering teams to give accountable executives the structure and visibility to focus on essential business needs and saved data analysts 1,200 hours per year",
+                    "Organized quarterly planning sessions for five related teams by facilitating roadmap integrations, critical paths, and next steps, enabling the teams to complete 90% of their tasks on time and error-free",
+                  ],
+                },
+              ]}
+            />
+
+            <JobCard
+              company="Whomi"
+              role="Product Manager &amp; Team Lead"
+              meta="May 2021 – Aug 2021 · Morrisville, NC"
+              groups={[
+                {
+                  bullets: [
+                    "Negotiated deals and established new client base for university/alum relations product, designed implementation plans from pitch to close, and translated client needs to engineering and design teams",
+                    "Mapped the product across user groups through qualitative interviews with internal and external stakeholders, continuously refining personas and translating customer insights into go-to-market strategy",
+                    "Recruited and managed a five-member cross-functional team focused on developing the strategy, defining the product, analyzing competition, and launching the flagship version of Whomi University",
+                  ],
+                },
+              ]}
+            />
+
+            <JobCard
+              company="Bechtel Oil, Gas, &amp; Chemicals"
+              role="Corporate Strategy and Business Development Associate"
+              meta="Jun 2014 – Jul 2019 · Houston, TX &amp; Soyo, Angola"
+              groups={[
+                {
+                  bullets: [
+                    "Identified gaps and redundancies in the marketing strategy for a significant product and redeveloped the system by identifying, centralizing, and enabling key players, resulting in $1B of new contracts",
+                    "Selected to join the on-site implementation team for a multi-billion-dollar energy megaproject in Soyo, Angola; identified problems and communicated solution strategies to groups ranging from safety-critical construction and commissioning operations up to the CEO, resulting in $10B savings",
+                    "Mobilized and guided a team of 25 engineers to find solutions to 900+ unresolved tickets in two months, triaged backlog in daily stand-ups and weekly check-ins to achieve a $10M return for the client",
+                  ],
+                },
+              ]}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Education & Skills */}
+      <section id="education" className="py-20 px-6 border-t border-[#262626]">
+        <div className="max-w-5xl mx-auto">
+          <p className="text-blue-500 font-mono text-sm mb-2 tracking-wider">
+            EDUCATION &amp; SKILLS
+          </p>
+          <h2 className="text-3xl sm:text-4xl font-black mb-12">Background</h2>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-12">
+            <div className="rounded-2xl border border-[#262626] bg-[#141414] p-8">
+              <h3 className="text-xl font-black mb-1">The University of North Carolina</h3>
+              <p className="text-sm text-[#737373] mb-3">
+                Kenan-Flagler Business School &middot; Chapel Hill, NC
+              </p>
+              <p className="text-[#a3a3a3] font-medium mb-1">
+                Master of Business Administration, Full-Time MBA Program &middot; GMAT 700
+              </p>
+              <p className="text-sm text-[#737373] mb-4">Aug 2019 – May 2021</p>
+              <ul className="text-sm text-[#a3a3a3] space-y-1">
+                <li>&bull; MBA Student Ambassador</li>
+                <li>&bull; Dean&apos;s Advancement Council Co-Chair</li>
+                <li>&bull; Legacy Class Representative</li>
+              </ul>
+            </div>
+            <div className="rounded-2xl border border-[#262626] bg-[#141414] p-8">
+              <h3 className="text-xl font-black mb-1">Auburn University</h3>
+              <p className="text-sm text-[#737373] mb-3">Auburn, AL</p>
+              <p className="text-[#a3a3a3] font-medium mb-1">
+                Bachelor of Science in Mechanical Engineering
+              </p>
+              <p className="text-sm text-[#737373]">Aug 2010 – May 2014</p>
+            </div>
+          </div>
+
+          <div className="space-y-8">
+            <div>
+              <h3 className="font-bold text-white mb-3">Core skills</h3>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  "End-to-End Product Ownership",
+                  "Product Strategy & Roadmapping",
+                  "Mobile & Web Products",
+                  "Customer Discovery & Research",
+                  "Success Metrics & Data-Driven Decisions",
+                  "Cross-Functional Leadership",
+                  "PRDs & Execution Plans",
+                  "Generative AI Products",
+                ].map((t) => (
+                  <span key={t} className="px-3 py-1.5 rounded-full border border-[#262626] text-sm text-[#a3a3a3]">
+                    {t}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div>
+              <h3 className="font-bold text-white mb-3">Tools</h3>
+              <div className="flex flex-wrap gap-2">
+                {["Jira", "Confluence", "Tableau", "Python", "SQL", "Figma", "Orange3", "JMP Pro", "MATLAB"].map((t) => (
+                  <span key={t} className="px-2 py-1 rounded text-xs font-mono bg-[#1a1a2e] text-blue-400 border border-blue-500/20">
+                    {t}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div>
+              <h3 className="font-bold text-white mb-3">AI</h3>
+              <p className="text-[#a3a3a3] text-sm leading-relaxed max-w-3xl">
+                LLM and agent workflows (Claude, ChatGPT) used daily for PRDs,
+                research synthesis, and prototyping; RAG and evaluation
+                frameworks.
+              </p>
+            </div>
           </div>
         </div>
       </section>
@@ -173,8 +405,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Resume CTA */}
-      <section className="py-20 px-6 border-t border-[#262626]">
+      {/* Contact */}
+      <section id="contact" className="py-20 px-6 border-t border-[#262626]">
         <div className="max-w-5xl mx-auto text-center">
           <h2 className="text-3xl sm:text-4xl font-black mb-4">
             Let&apos;s Build Something
@@ -226,6 +458,8 @@ function ProjectCard({
   technicalDetails,
   warStories,
   tags,
+  flagship,
+  stats,
 }: {
   icon: string;
   title: string;
@@ -237,9 +471,25 @@ function ProjectCard({
   technicalDetails: string[];
   warStories?: string[];
   tags: string[];
+  flagship?: boolean;
+  stats?: { num: string; label: string }[];
 }) {
+  const linkColor = flagship
+    ? "text-[#e2b13c] hover:text-[#f0c65e]"
+    : "text-blue-500 hover:text-blue-400";
   return (
-    <div className="group rounded-2xl border border-[#262626] bg-[#141414] p-8 hover:border-blue-500/30 transition-all">
+    <div
+      className={
+        flagship
+          ? "group rounded-2xl border border-[#c0392b]/40 bg-[#141414] p-8 hover:border-[#c0392b]/70 transition-all shadow-lg shadow-[#c0392b]/10"
+          : "group rounded-2xl border border-[#262626] bg-[#141414] p-8 hover:border-blue-500/30 transition-all"
+      }
+    >
+      {flagship && (
+        <p className="font-mono text-xs tracking-wider text-[#e2b13c] mb-4">
+          THE FLAGSHIP PROJECT
+        </p>
+      )}
       <div className="flex items-center gap-3 mb-4">
         <span className="text-3xl" dangerouslySetInnerHTML={{ __html: icon }} />
         <div>
@@ -250,12 +500,25 @@ function ProjectCard({
           href={href}
           target="_blank"
           rel="noopener noreferrer"
-          className="ml-auto text-sm text-blue-500 hover:text-blue-400 font-medium shrink-0"
+          className={`ml-auto text-sm font-medium shrink-0 ${linkColor}`}
         >
           {linkLabel} &#8599;
         </a>
       </div>
       <p className="text-[#a3a3a3] leading-relaxed mb-5" dangerouslySetInnerHTML={{ __html: description }} />
+      {stats && stats.length > 0 && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+          {stats.map((s) => (
+            <div
+              key={s.label}
+              className="rounded-xl border border-[#c0392b]/25 bg-[#0a0a0a] p-4"
+            >
+              <span className="block font-bold text-[#e2b13c] mb-1">{s.num}</span>
+              <span className="text-xs text-[#a3a3a3] leading-snug">{s.label}</span>
+            </div>
+          ))}
+        </div>
+      )}
       <div className="space-y-4 text-sm">
         <DetailSection title="Product Decisions" items={productDecisions} />
         <DetailSection title="Technical Architecture" items={technicalDetails} />
@@ -267,7 +530,11 @@ function ProjectCard({
         {tags.map((t) => (
           <span
             key={t}
-            className="px-2 py-1 rounded text-xs font-mono bg-[#1a1a2e] text-blue-400 border border-blue-500/20"
+            className={
+              flagship
+                ? "px-2 py-1 rounded text-xs font-mono bg-[#2e1a1a] text-[#e2b13c] border border-[#c0392b]/30"
+                : "px-2 py-1 rounded text-xs font-mono bg-[#1a1a2e] text-blue-400 border border-blue-500/20"
+            }
           >
             {t}
           </span>
@@ -286,6 +553,40 @@ function DetailSection({ title, items }: { title: string; items: string[] }) {
           <li key={i}>&bull; {item}</li>
         ))}
       </ul>
+    </div>
+  );
+}
+
+function JobCard({
+  company,
+  role,
+  meta,
+  groups,
+}: {
+  company: string;
+  role: string;
+  meta: string;
+  groups: { heading?: string; bullets: string[] }[];
+}) {
+  return (
+    <div className="rounded-2xl border border-[#262626] bg-[#141414] p-8">
+      <div className="flex flex-wrap items-baseline justify-between gap-2 mb-1">
+        <h3 className="text-xl font-black" dangerouslySetInnerHTML={{ __html: company }} />
+        <p className="text-sm text-[#737373]" dangerouslySetInnerHTML={{ __html: meta }} />
+      </div>
+      <p className="text-blue-400 font-medium text-sm mb-4" dangerouslySetInnerHTML={{ __html: role }} />
+      <div className="space-y-4 text-sm">
+        {groups.map((g, i) => (
+          <div key={i}>
+            {g.heading && <h4 className="font-bold text-white mb-1">{g.heading}</h4>}
+            <ul className="text-[#a3a3a3] space-y-1">
+              {g.bullets.map((b, j) => (
+                <li key={j}>&bull; {b}</li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

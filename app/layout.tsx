@@ -13,13 +13,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Matthew Richter | Product Builder",
+  title: "Matthew Richter | Senior Product Manager",
   description:
-    "Product manager and builder. Shipping real products with AI-assisted development — from concept to production.",
+    "Senior Product Manager who owns products end to end — and builder of doudizhu.cards, a mobile-first global card game powered by AI.",
   openGraph: {
-    title: "Matthew Richter | Product Builder",
+    title: "Matthew Richter | Senior Product Manager",
     description:
-      "Product manager and builder. Shipping real products with AI-assisted development.",
+      "Senior Product Manager who owns products end to end — and builder of doudizhu.cards, a mobile-first global card game powered by AI.",
     url: "https://matthewrichter.dev",
     type: "website",
   },
