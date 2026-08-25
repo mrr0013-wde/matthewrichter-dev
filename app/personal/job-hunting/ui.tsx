@@ -108,18 +108,18 @@ export function TodoSection({
           <input
             name="title"
             placeholder="What needs doing?"
-            className="flex-1 min-w-52 rounded-lg border border-[#262626] bg-[#0a0a0a] px-3 py-2 text-sm text-[#ededed] focus:border-blue-500 focus:outline-none"
+            className="flex-1 min-w-52 rounded-lg border border-[#33373d] bg-[#14161a] px-3 py-2 text-sm text-[#ededed] focus:border-blue-500 focus:outline-none"
           />
           <input
             type="date"
             name="due_date"
             defaultValue={todayStr()}
-            className="rounded-lg border border-[#262626] bg-[#0a0a0a] px-3 py-2 text-sm text-[#a3a3a3]"
+            className="rounded-lg border border-[#33373d] bg-[#14161a] px-3 py-2 text-sm text-[#a3a3a3]"
           />
           <select
             name="application_id"
             defaultValue=""
-            className="rounded-lg border border-[#262626] bg-[#0a0a0a] px-3 py-2 text-sm text-[#a3a3a3] max-w-44"
+            className="rounded-lg border border-[#33373d] bg-[#14161a] px-3 py-2 text-sm text-[#a3a3a3] max-w-44"
           >
             <option value="">No linked company</option>
             {apps.map((a) => (
@@ -138,7 +138,7 @@ export function TodoSection({
 function TodoRow({ todo, app, overdue }: { todo: Todo; app?: Application; overdue: boolean }) {
   return (
     <div
-      className={`flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border px-4 py-2.5 bg-[#141414] ${overdue ? "border-amber-500/40" : "border-[#262626]"}`}
+      className={`flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border px-4 py-2.5 bg-[#1d2025] ${overdue ? "border-amber-500/40" : "border-[#33373d]"}`}
     >
       <span className="text-sm">{todo.title}</span>
       {app && (
@@ -159,14 +159,14 @@ function TodoRow({ todo, app, overdue }: { todo: Todo; app?: Application; overdu
         <form action={snoozeTodo}>
           <input type="hidden" name="id" value={todo.id} />
           <input type="hidden" name="days" value="7" />
-          <button className="text-xs px-2.5 py-1 rounded-lg border border-[#262626] hover:border-[#404040] text-[#737373] hover:text-white transition-colors">
+          <button className="text-xs px-2.5 py-1 rounded-lg border border-[#33373d] hover:border-[#404040] text-[#737373] hover:text-white transition-colors">
             😴 +1w
           </button>
         </form>
         <form action={snoozeTodo}>
           <input type="hidden" name="id" value={todo.id} />
           <input type="hidden" name="days" value="30" />
-          <button className="text-xs px-2.5 py-1 rounded-lg border border-[#262626] hover:border-[#404040] text-[#737373] hover:text-white transition-colors">
+          <button className="text-xs px-2.5 py-1 rounded-lg border border-[#33373d] hover:border-[#404040] text-[#737373] hover:text-white transition-colors">
             😴 +1m
           </button>
         </form>
@@ -181,7 +181,7 @@ export function AppRow({ a, whoAt }: { a: Application; whoAt: Connection[] }) {
   const [isPending, startTransition] = useTransition();
   return (
     <details
-      className="rounded-xl border border-[#262626] bg-[#141414] open:border-blue-500/30 transition-colors"
+      className="rounded-xl border border-[#33373d] bg-[#1d2025] open:border-blue-500/30 transition-colors"
       draggable
       onDragStart={(e) => {
         e.dataTransfer.setData("text/app-id", String(a.id));
@@ -204,7 +204,7 @@ export function AppRow({ a, whoAt }: { a: Application; whoAt: Connection[] }) {
         )}
         <span className="ml-auto text-xs text-[#737373]">{fmt(a.last_activity)}</span>
       </summary>
-      <div className="px-4 pb-4 pt-1 border-t border-[#262626]">
+      <div className="px-4 pb-4 pt-1 border-t border-[#33373d]">
         <p className="text-xs text-[#737373] mb-2">
           {a.contact_name && (
             <>
@@ -244,27 +244,27 @@ export function AppRow({ a, whoAt }: { a: Application; whoAt: Connection[] }) {
             <select
               name="status"
               defaultValue={a.status}
-              className="rounded-lg border border-[#262626] bg-[#0a0a0a] px-2 py-1 text-xs text-[#a3a3a3]"
+              className="rounded-lg border border-[#33373d] bg-[#14161a] px-2 py-1 text-xs text-[#a3a3a3]"
             >
               {STATUSES.map((s) => (
                 <option key={s} value={s}>{s}</option>
               ))}
             </select>
-            <button className="text-xs px-3 py-1.5 rounded-lg border border-[#262626] hover:border-blue-500/40 text-[#a3a3a3] hover:text-white transition-colors">
+            <button className="text-xs px-3 py-1.5 rounded-lg border border-[#33373d] hover:border-blue-500/40 text-[#a3a3a3] hover:text-white transition-colors">
               Update
             </button>
           </form>
           <button
             onClick={() => startTransition(() => addFollowUpTodo(a.id))}
             disabled={isPending}
-            className="text-xs px-3 py-1.5 rounded-lg border border-[#262626] hover:border-blue-500/40 text-[#a3a3a3] hover:text-white transition-colors disabled:opacity-50"
+            className="text-xs px-3 py-1.5 rounded-lg border border-[#33373d] hover:border-blue-500/40 text-[#a3a3a3] hover:text-white transition-colors disabled:opacity-50"
           >
             {isPending ? "Adding…" : "📌 + To-Do"}
           </button>
           <form action={setApplicationArchived} className="ml-auto">
             <input type="hidden" name="id" value={a.id} />
             <input type="hidden" name="archived" value={a.archived ? "false" : "true"} />
-            <button className="text-xs px-3 py-1.5 rounded-lg border border-[#262626] hover:border-[#404040] text-[#737373] hover:text-white transition-colors">
+            <button className="text-xs px-3 py-1.5 rounded-lg border border-[#33373d] hover:border-[#404040] text-[#737373] hover:text-white transition-colors">
               {a.archived ? "Unarchive" : "🗄 Archive"}
             </button>
           </form>
@@ -278,7 +278,7 @@ export function AppRow({ a, whoAt }: { a: Application; whoAt: Connection[] }) {
 
 export function LeadRow({ l, whoAt }: { l: JobLead; whoAt: Connection[] }) {
   return (
-    <details className="rounded-xl border border-[#262626] bg-[#141414] open:border-blue-500/30 transition-colors">
+    <details className="rounded-xl border border-[#33373d] bg-[#1d2025] open:border-blue-500/30 transition-colors">
       <summary className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
         <span className="font-bold">{l.company}</span>
         <span className="text-[#a3a3a3] text-sm truncate max-w-72">{l.title}</span>
@@ -291,7 +291,7 @@ export function LeadRow({ l, whoAt }: { l: JobLead; whoAt: Connection[] }) {
           {l.posted_at ? `posted ${fmt(l.posted_at)}` : l.source}
         </span>
       </summary>
-      <div className="px-4 pb-4 pt-1 border-t border-[#262626]">
+      <div className="px-4 pb-4 pt-1 border-t border-[#33373d]">
         <p className="text-sm text-[#a3a3a3] mb-2">
           <a href={l.url} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300">
             Open posting ↗
@@ -318,7 +318,7 @@ export function LeadRow({ l, whoAt }: { l: JobLead; whoAt: Connection[] }) {
           </form>
           <form action={dismissLead}>
             <input type="hidden" name="id" value={l.id} />
-            <button className="text-xs px-3 py-1.5 rounded-lg border border-[#262626] hover:border-[#404040] text-[#737373] hover:text-white transition-colors">
+            <button className="text-xs px-3 py-1.5 rounded-lg border border-[#33373d] hover:border-[#404040] text-[#737373] hover:text-white transition-colors">
               Dismiss
             </button>
           </form>

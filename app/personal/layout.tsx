@@ -16,7 +16,7 @@ export default async function PersonalLayout({
   if (!authed) {
     return (
       <main className="min-h-screen flex items-center justify-center px-6">
-        <div className="w-full max-w-sm rounded-2xl border border-[#262626] bg-[#141414] p-8 text-center">
+        <div className="w-full max-w-sm rounded-2xl border border-[#33373d] bg-[#1d2025] p-8 text-center">
           <p className="text-blue-500 font-mono text-xs tracking-wider mb-2">
             PRIVATE AREA
           </p>
@@ -34,7 +34,7 @@ export default async function PersonalLayout({
 
   return (
     <main className="min-h-screen">
-      <nav className="border-b border-[#262626] bg-[#0a0a0a]">
+      <nav className="border-b border-[#33373d] bg-[#14161a]">
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center gap-6 text-sm">
           <a href="/personal" className="font-mono font-bold text-[#ededed]">
             personal<span className="text-blue-500">.</span>

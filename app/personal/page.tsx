@@ -8,7 +8,7 @@ export default function PersonalHub() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <a
           href="/personal/job-hunting"
-          className="rounded-2xl border border-[#262626] bg-[#141414] p-8 hover:border-blue-500/40 transition-all"
+          className="rounded-2xl border border-[#33373d] bg-[#1d2025] p-8 hover:border-blue-500/40 transition-all"
         >
           <div className="text-3xl mb-3">🎯</div>
           <h2 className="text-xl font-black mb-2">Job Hunting</h2>
@@ -19,7 +19,7 @@ export default function PersonalHub() {
         </a>
         <a
           href="/personal/family-finance"
-          className="rounded-2xl border border-[#262626] bg-[#141414] p-8 hover:border-blue-500/40 transition-all"
+          className="rounded-2xl border border-[#33373d] bg-[#1d2025] p-8 hover:border-blue-500/40 transition-all"
         >
           <div className="text-3xl mb-3">💰</div>
           <h2 className="text-xl font-black mb-2">Family Finance</h2>

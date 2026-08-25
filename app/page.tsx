@@ -2,7 +2,7 @@ export default function Home() {
   return (
     <main className="flex-1">
       {/* Nav */}
-      <nav className="fixed top-0 w-full z-50 backdrop-blur-md bg-[#0a0a0a]/80 border-b border-[#262626]">
+      <nav className="fixed top-0 w-full z-50 backdrop-blur-md bg-[#14161a]/80 border-b border-[#33373d]">
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
           <span className="font-mono text-sm font-bold tracking-tight">
             matthew<span className="text-blue-500">richter</span>.dev
@@ -66,14 +66,14 @@ export default function Home() {
               </a>
               <a
                 href="#experience"
-                className="px-6 py-3 border border-[#262626] hover:border-[#404040] text-[#a3a3a3] hover:text-white font-bold rounded-lg transition-colors"
+                className="px-6 py-3 border border-[#33373d] hover:border-[#404040] text-[#a3a3a3] hover:text-white font-bold rounded-lg transition-colors"
               >
                 See my experience
               </a>
             </div>
             <div className="flex flex-wrap gap-3 text-sm">
               {["End-to-End Product Ownership", "Product Strategy & Roadmapping", "Generative AI Products", "Full-Stack Shipping"].map((t) => (
-                <span key={t} className="px-3 py-1.5 rounded-full border border-[#262626] text-[#a3a3a3]">
+                <span key={t} className="px-3 py-1.5 rounded-full border border-[#33373d] text-[#a3a3a3]">
                   {t}
                 </span>
               ))}
@@ -190,7 +190,7 @@ export default function Home() {
       </section>
 
       {/* Experience */}
-      <section id="experience" className="py-20 px-6 border-t border-[#262626]">
+      <section id="experience" className="py-20 px-6 border-t border-[#33373d]">
         <div className="max-w-5xl mx-auto">
           <p className="text-blue-500 font-mono text-sm mb-2 tracking-wider">
             WHERE I&apos;VE WORKED
@@ -292,7 +292,7 @@ export default function Home() {
       </section>
 
       {/* Education & Skills */}
-      <section id="education" className="py-20 px-6 border-t border-[#262626]">
+      <section id="education" className="py-20 px-6 border-t border-[#33373d]">
         <div className="max-w-5xl mx-auto">
           <p className="text-blue-500 font-mono text-sm mb-2 tracking-wider">
             EDUCATION &amp; SKILLS
@@ -300,7 +300,7 @@ export default function Home() {
           <h2 className="text-3xl sm:text-4xl font-black mb-12">Background</h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-12">
-            <div className="rounded-2xl border border-[#262626] bg-[#141414] p-8">
+            <div className="rounded-2xl border border-[#33373d] bg-[#1d2025] p-8">
               <h3 className="text-xl font-black mb-1">The University of North Carolina</h3>
               <p className="text-sm text-[#737373] mb-3">
                 Kenan-Flagler Business School &middot; Chapel Hill, NC
@@ -315,7 +315,7 @@ export default function Home() {
                 <li>&bull; Legacy Class Representative</li>
               </ul>
             </div>
-            <div className="rounded-2xl border border-[#262626] bg-[#141414] p-8">
+            <div className="rounded-2xl border border-[#33373d] bg-[#1d2025] p-8">
               <h3 className="text-xl font-black mb-1">Auburn University</h3>
               <p className="text-sm text-[#737373] mb-3">Auburn, AL</p>
               <p className="text-[#a3a3a3] font-medium mb-1">
@@ -339,7 +339,7 @@ export default function Home() {
                   "PRDs & Execution Plans",
                   "Generative AI Products",
                 ].map((t) => (
-                  <span key={t} className="px-3 py-1.5 rounded-full border border-[#262626] text-sm text-[#a3a3a3]">
+                  <span key={t} className="px-3 py-1.5 rounded-full border border-[#33373d] text-sm text-[#a3a3a3]">
                     {t}
                   </span>
                 ))}
@@ -349,7 +349,7 @@ export default function Home() {
               <h3 className="font-bold text-white mb-3">Tools</h3>
               <div className="flex flex-wrap gap-2">
                 {["Jira", "Confluence", "Tableau", "Python", "SQL", "Figma", "Orange3", "JMP Pro", "MATLAB"].map((t) => (
-                  <span key={t} className="px-2 py-1 rounded text-xs font-mono bg-[#1a1a2e] text-blue-400 border border-blue-500/20">
+                  <span key={t} className="px-2 py-1 rounded text-xs font-mono bg-[#232640] text-blue-400 border border-blue-500/20">
                     {t}
                   </span>
                 ))}
@@ -368,7 +368,7 @@ export default function Home() {
       </section>
 
       {/* Approach */}
-      <section id="approach" className="py-20 px-6 border-t border-[#262626]">
+      <section id="approach" className="py-20 px-6 border-t border-[#33373d]">
         <div className="max-w-5xl mx-auto">
           <p className="text-blue-500 font-mono text-sm mb-2 tracking-wider">
             HOW I WORK
@@ -406,7 +406,7 @@ export default function Home() {
       </section>
 
       {/* Contact */}
-      <section id="contact" className="py-20 px-6 border-t border-[#262626]">
+      <section id="contact" className="py-20 px-6 border-t border-[#33373d]">
         <div className="max-w-5xl mx-auto text-center">
           <h2 className="text-3xl sm:text-4xl font-black mb-4">
             Let&apos;s Build Something
@@ -426,7 +426,7 @@ export default function Home() {
               href="https://www.linkedin.com/in/matthew-richter"
               target="_blank"
               rel="noopener noreferrer"
-              className="px-6 py-3 border border-[#262626] hover:border-[#404040] text-[#a3a3a3] hover:text-white font-bold rounded-lg transition-colors"
+              className="px-6 py-3 border border-[#33373d] hover:border-[#404040] text-[#a3a3a3] hover:text-white font-bold rounded-lg transition-colors"
             >
               LinkedIn
             </a>
@@ -435,7 +435,7 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="py-8 px-6 border-t border-[#262626]">
+      <footer className="py-8 px-6 border-t border-[#33373d]">
         <div className="max-w-5xl mx-auto flex items-center justify-between text-sm text-[#525252]">
           <span>Matthew Richter</span>
           <span>Greenville, SC</span>
@@ -481,8 +481,8 @@ function ProjectCard({
     <div
       className={
         flagship
-          ? "group rounded-2xl border border-[#c0392b]/40 bg-[#141414] p-8 hover:border-[#c0392b]/70 transition-all shadow-lg shadow-[#c0392b]/10"
-          : "group rounded-2xl border border-[#262626] bg-[#141414] p-8 hover:border-blue-500/30 transition-all"
+          ? "group rounded-2xl border border-[#c0392b]/40 bg-[#1d2025] p-8 hover:border-[#c0392b]/70 transition-all shadow-lg shadow-[#c0392b]/10"
+          : "group rounded-2xl border border-[#33373d] bg-[#1d2025] p-8 hover:border-blue-500/30 transition-all"
       }
     >
       {flagship && (
@@ -511,7 +511,7 @@ function ProjectCard({
           {stats.map((s) => (
             <div
               key={s.label}
-              className="rounded-xl border border-[#c0392b]/25 bg-[#0a0a0a] p-4"
+              className="rounded-xl border border-[#c0392b]/25 bg-[#14161a] p-4"
             >
               <span className="block font-bold text-[#e2b13c] mb-1">{s.num}</span>
               <span className="text-xs text-[#a3a3a3] leading-snug">{s.label}</span>
@@ -532,8 +532,8 @@ function ProjectCard({
             key={t}
             className={
               flagship
-                ? "px-2 py-1 rounded text-xs font-mono bg-[#2e1a1a] text-[#e2b13c] border border-[#c0392b]/30"
-                : "px-2 py-1 rounded text-xs font-mono bg-[#1a1a2e] text-blue-400 border border-blue-500/20"
+                ? "px-2 py-1 rounded text-xs font-mono bg-[#3a2428] text-[#e2b13c] border border-[#c0392b]/30"
+                : "px-2 py-1 rounded text-xs font-mono bg-[#232640] text-blue-400 border border-blue-500/20"
             }
           >
             {t}
@@ -569,7 +569,7 @@ function JobCard({
   groups: { heading?: string; bullets: string[] }[];
 }) {
   return (
-    <div className="rounded-2xl border border-[#262626] bg-[#141414] p-8">
+    <div className="rounded-2xl border border-[#33373d] bg-[#1d2025] p-8">
       <div className="flex flex-wrap items-baseline justify-between gap-2 mb-1">
         <h3 className="text-xl font-black" dangerouslySetInnerHTML={{ __html: company }} />
         <p className="text-sm text-[#737373]" dangerouslySetInnerHTML={{ __html: meta }} />
@@ -593,7 +593,7 @@ function JobCard({
 
 function ApproachCard({ icon, title, text }: { icon: string; title: string; text: string }) {
   return (
-    <div className="rounded-xl border border-[#262626] bg-[#141414] p-5">
+    <div className="rounded-xl border border-[#33373d] bg-[#1d2025] p-5">
       <div className="text-2xl mb-3" dangerouslySetInnerHTML={{ __html: icon }} />
       <h4 className="font-bold mb-2">{title}</h4>
       <p className="text-sm text-[#737373] leading-relaxed" dangerouslySetInnerHTML={{ __html: text }} />
