@@ -43,6 +43,26 @@ async function fetchJson(url: string): Promise<unknown> {
   }
 }
 
+// "Posted Today" / "Posted Yesterday" / "Posted 6 Days Ago" / "Posted 30+ Days Ago"
+function parseWorkdayPostedOn(text?: string): string | null | "stale" {
+  if (!text) return null;
+  if (/30\+/.test(text)) return "stale";
+  const today = new Date();
+  if (/today/i.test(text)) return today.toISOString().slice(0, 10);
+  if (/yesterday/i.test(text)) {
+    today.setDate(today.getDate() - 1);
+    return today.toISOString().slice(0, 10);
+  }
+  const m = text.match(/(\d+)\s*days?\s*ago/i);
+  if (m) {
+    const days = Number(m[1]);
+    if (days > MAX_AGE_DAYS) return "stale";
+    today.setDate(today.getDate() - days);
+    return today.toISOString().slice(0, 10);
+  }
+  return null;
+}
+
 function freshEnough(iso: string | null): boolean {
   if (!iso) return true; // no date on the board — keep it, dedupe handles noise
   const age = Date.now() - new Date(iso).getTime();
@@ -90,6 +110,47 @@ async function scanBoard(b: Board): Promise<Lead[]> {
           url: j.hostedUrl,
           posted_at: posted ? posted.slice(0, 10) : null,
           source: "lever",
+          connection_count: b.connection_count,
+        });
+      }
+    }
+  } else if (b.ats === "workday") {
+    // board_slug = "tenant|wdHost|site" — unofficial CXS endpoint behind
+    // {tenant}.{host}.myworkdayjobs.com career pages. No auth needed.
+    const [tenant, host, site] = b.board_slug.split("|");
+    if (!tenant || !host || !site) return leads;
+    const base = `https://${tenant}.${host}.myworkdayjobs.com`;
+    let data: { jobPostings?: { title: string; externalPath: string; locationsText?: string; postedOn?: string }[] } | null = null;
+    try {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 8000);
+      const res = await fetch(`${base}/wday/cxs/${tenant}/${encodeURIComponent(site)}/jobs`, {
+        method: "POST",
+        signal: ctrl.signal,
+        headers: { "content-type": "application/json", "user-agent": "Mozilla/5.0" },
+        body: JSON.stringify({ appliedFacets: {}, limit: 20, offset: 0, searchText: "product manager" }),
+        cache: "no-store",
+      });
+      clearTimeout(t);
+      if (res.ok) data = await res.json();
+    } catch {
+      /* board unreachable today — skip */
+    }
+    for (const j of data?.jobPostings ?? []) {
+      const posted = parseWorkdayPostedOn(j.postedOn);
+      if (posted === "stale") continue; // "Posted 30+ Days Ago"
+      const loc = j.locationsText ?? "";
+      // Workday rarely marks remote explicitly; multi-location postings
+      // ("3 Locations") are kept so Matthew can judge.
+      const locOk = REMOTE_RE.test(loc) || /locations/i.test(loc) || REMOTE_RE.test(j.title);
+      if (wantTitle(j.title) && locOk) {
+        leads.push({
+          company: b.company,
+          title: j.title,
+          location: loc || null,
+          url: `${base}/en-US/${site}${j.externalPath}`,
+          posted_at: posted,
+          source: "workday",
           connection_count: b.connection_count,
         });
       }

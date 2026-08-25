@@ -44,6 +44,7 @@ export type Application = {
   last_activity: string | null;
   notes: string | null;
   job_url: string | null;
+  archived: boolean;
 };
 
 export type JobLead = {
@@ -57,6 +58,14 @@ export type JobLead = {
   connection_count: number;
   found_at: string;
   dismissed: boolean;
+};
+
+export type Todo = {
+  id: number;
+  title: string;
+  due_date: string;
+  application_id: number | null;
+  done: boolean;
 };
 
 export type Connection = {
