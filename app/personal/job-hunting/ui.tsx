@@ -138,18 +138,20 @@ export function TodoSection({
 function TodoRow({ todo, app, overdue }: { todo: Todo; app?: Application; overdue: boolean }) {
   return (
     <div
-      className={`flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border px-4 py-2.5 bg-[#1d2025] ${overdue ? "border-amber-500/40" : "border-[#33373d]"}`}
+      className={`flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 rounded-xl border px-4 py-2.5 bg-[#1d2025] ${overdue ? "border-amber-500/40" : "border-[#33373d]"}`}
     >
-      <span className="text-sm">{todo.title}</span>
-      {app && (
-        <span className="px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-300 border border-blue-500/30 font-mono text-xs">
-          {app.company}
+      <span className="text-sm sm:flex-1 min-w-0">{todo.title}</span>
+      <div className="flex items-center gap-2 shrink-0">
+        {app && (
+          <span className="px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-300 border border-blue-500/30 font-mono text-xs">
+            {app.company}
+          </span>
+        )}
+        <span className={`text-xs ${overdue ? "text-amber-300 font-bold" : "text-[#737373]"}`}>
+          {overdue ? "overdue · " : "due "}{fmt(todo.due_date)}
         </span>
-      )}
-      <span className={`text-xs ${overdue ? "text-amber-300 font-bold" : "text-[#737373]"}`}>
-        {overdue ? "overdue · " : "due "}{fmt(todo.due_date)}
-      </span>
-      <div className="ml-auto flex gap-1.5">
+      </div>
+      <div className="sm:ml-auto flex gap-1.5 shrink-0">
         <form action={completeTodo}>
           <input type="hidden" name="id" value={todo.id} />
           <button className="text-xs px-2.5 py-1 rounded-lg bg-green-600/80 hover:bg-green-500 text-white font-bold transition-colors">
@@ -188,21 +190,24 @@ export function AppRow({ a, whoAt }: { a: Application; whoAt: Connection[] }) {
         e.dataTransfer.effectAllowed = "copy";
       }}
     >
-      <summary className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
-        <span className="text-[#525252] cursor-grab select-none" title="Drag to To-Do">⠿</span>
-        <span className="font-bold">{a.company}</span>
-        <span className="text-[#a3a3a3] text-sm truncate max-w-72">{a.role}</span>
-        <span
-          className={`px-2 py-0.5 rounded border text-xs font-mono ${STATUS_STYLES[a.status] ?? STATUS_STYLES.applied}`}
-        >
-          {a.status}
-        </span>
-        {(a.notes || "").includes("ACTION NEEDED") && (
-          <span className="px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 font-mono text-xs">
-            ⚠ action
+      <summary className="px-4 py-3 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+        <div className="flex items-center gap-3 min-w-0">
+          <span className="text-[#525252] cursor-grab select-none shrink-0" title="Drag to To-Do">⠿</span>
+          <span className="font-bold shrink-0">{a.company}</span>
+          <span className="hidden sm:block text-[#a3a3a3] text-sm truncate min-w-0 flex-1">{a.role}</span>
+          <span
+            className={`shrink-0 px-2 py-0.5 rounded border text-xs font-mono ${STATUS_STYLES[a.status] ?? STATUS_STYLES.applied}`}
+          >
+            {a.status}
           </span>
-        )}
-        <span className="ml-auto text-xs text-[#737373]">{fmt(a.last_activity)}</span>
+          {(a.notes || "").includes("ACTION NEEDED") && (
+            <span className="shrink-0 px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 font-mono text-xs">
+              ⚠
+            </span>
+          )}
+          <span className="ml-auto shrink-0 text-xs text-[#737373]">{fmt(a.last_activity)}</span>
+        </div>
+        <div className="sm:hidden text-[#a3a3a3] text-sm truncate mt-1 pl-7">{a.role}</div>
       </summary>
       <div className="px-4 pb-4 pt-1 border-t border-[#33373d]">
         <p className="text-xs text-[#737373] mb-2">
@@ -279,17 +284,20 @@ export function AppRow({ a, whoAt }: { a: Application; whoAt: Connection[] }) {
 export function LeadRow({ l, whoAt }: { l: JobLead; whoAt: Connection[] }) {
   return (
     <details className="rounded-xl border border-[#33373d] bg-[#1d2025] open:border-blue-500/30 transition-colors">
-      <summary className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
-        <span className="font-bold">{l.company}</span>
-        <span className="text-[#a3a3a3] text-sm truncate max-w-72">{l.title}</span>
-        {whoAt.length > 0 && (
-          <span className="px-1.5 py-0.5 rounded bg-green-500/15 text-green-300 border border-green-500/30 font-mono text-xs">
-            {whoAt.length} 🤝
+      <summary className="px-4 py-3 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+        <div className="flex items-center gap-3 min-w-0">
+          <span className="font-bold shrink-0">{l.company}</span>
+          <span className="hidden sm:block text-[#a3a3a3] text-sm truncate min-w-0 flex-1">{l.title}</span>
+          {whoAt.length > 0 && (
+            <span className="shrink-0 px-1.5 py-0.5 rounded bg-green-500/15 text-green-300 border border-green-500/30 font-mono text-xs">
+              {whoAt.length} 🤝
+            </span>
+          )}
+          <span className="ml-auto shrink-0 text-xs text-[#737373]">
+            {l.posted_at ? `posted ${fmt(l.posted_at)}` : l.source}
           </span>
-        )}
-        <span className="ml-auto text-xs text-[#737373]">
-          {l.posted_at ? `posted ${fmt(l.posted_at)}` : l.source}
-        </span>
+        </div>
+        <div className="sm:hidden text-[#a3a3a3] text-sm truncate mt-1">{l.title}</div>
       </summary>
       <div className="px-4 pb-4 pt-1 border-t border-[#33373d]">
         <p className="text-sm text-[#a3a3a3] mb-2">
