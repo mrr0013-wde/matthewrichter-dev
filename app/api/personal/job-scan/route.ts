@@ -14,6 +14,8 @@ const TITLE_RE = /product manager|product management lead/i;
 const TITLE_EXCLUDE_RE =
   /principal|director|vp|vice president|head of|group product|intern/i;
 const REMOTE_RE = /remote|anywhere|distributed|united states|usa/i;
+// Only two locations qualify: remote, or onsite in Greenville, SC.
+const GREENVILLE_RE = /greenville,?\s*(sc|south carolina)/i;
 const MAX_AGE_DAYS = 45;
 
 // Leads with a posted range topping out under this are dropped. Postings with
@@ -136,6 +138,10 @@ function wantTitle(title: string): boolean {
   return TITLE_RE.test(title) && !TITLE_EXCLUDE_RE.test(title);
 }
 
+function wantLocation(loc: string): boolean {
+  return REMOTE_RE.test(loc) || GREENVILLE_RE.test(loc);
+}
+
 async function scanBoard(b: Board): Promise<Lead[]> {
   const leads: Lead[] = [];
   if (b.ats === "greenhouse") {
@@ -146,7 +152,7 @@ async function scanBoard(b: Board): Promise<Lead[]> {
     for (const j of data?.jobs ?? []) {
       const loc = j.location?.name ?? "";
       const posted = j.first_published ?? j.updated_at ?? null;
-      if (wantTitle(j.title) && REMOTE_RE.test(loc) && freshEnough(posted)) {
+      if (wantTitle(j.title) && wantLocation(loc) && freshEnough(posted)) {
         leads.push(
           withSalary(
             {
@@ -169,9 +175,9 @@ async function scanBoard(b: Board): Promise<Lead[]> {
     )) as { text: string; hostedUrl: string; createdAt?: number; workplaceType?: string; categories?: { location?: string }; salaryRange?: { min?: number; max?: number; currency?: string; interval?: string }; descriptionPlain?: string; additionalPlain?: string }[] | null;
     for (const j of data ?? []) {
       const loc = j.categories?.location ?? "";
-      const remote = j.workplaceType === "remote" || REMOTE_RE.test(loc);
+      const locOk = j.workplaceType === "remote" || wantLocation(loc);
       const posted = j.createdAt ? new Date(j.createdAt).toISOString() : null;
-      if (wantTitle(j.text) && remote && freshEnough(posted)) {
+      if (wantTitle(j.text) && locOk && freshEnough(posted)) {
         // Prefer Lever's structured salaryRange (annual USD only); fall back
         // to scraping the description.
         let salary: Salary | null = null;
@@ -235,27 +241,38 @@ async function scanBoard(b: Board): Promise<Lead[]> {
       const posted = parseWorkdayPostedOn(j.postedOn);
       if (posted === "stale") continue; // "Posted 30+ Days Ago"
       const loc = j.locationsText ?? "";
-      // Workday rarely marks remote explicitly; multi-location postings
-      // ("3 Locations") are kept so Matthew can judge.
-      const locOk = REMOTE_RE.test(loc) || /locations/i.test(loc) || REMOTE_RE.test(j.title);
-      if (wantTitle(j.title) && locOk) {
-        // Salary isn't in the list response — pull the posting detail for the
-        // handful of matches. Detail fetch failing just means salary unknown.
+      // "3 Locations" is opaque in the list response — provisionally keep it
+      // and resolve the actual cities from the posting detail below.
+      const maybeOk =
+        wantLocation(loc) || /locations/i.test(loc) || REMOTE_RE.test(j.title);
+      if (wantTitle(j.title) && maybeOk) {
+        // Posting detail carries both the salary text and the real locations.
         const detail = (await fetchJson(
           `${base}/wday/cxs/${tenant}/${encodeURIComponent(site)}${j.externalPath}`
-        )) as { jobPostingInfo?: { jobDescription?: string } } | null;
+        )) as { jobPostingInfo?: { jobDescription?: string; location?: string; additionalLocations?: string[] } } | null;
+        const info = detail?.jobPostingInfo;
+        const detailLocs = [info?.location, ...(info?.additionalLocations ?? [])]
+          .filter(Boolean)
+          .join(" | ");
+        const allLocs = detailLocs || loc;
+        // With detail in hand, be strict: remote or Greenville, SC only. If
+        // the detail fetch failed, fall back to what the list row showed.
+        const locOk = info
+          ? wantLocation(allLocs) || REMOTE_RE.test(j.title)
+          : wantLocation(loc) || REMOTE_RE.test(j.title);
+        if (!locOk) continue;
         leads.push(
           withSalary(
             {
               company: b.company,
               title: j.title,
-              location: loc || null,
+              location: (info ? allLocs : loc) || null,
               url: `${base}/en-US/${site}${j.externalPath}`,
               posted_at: posted,
               source: "workday",
               connection_count: b.connection_count,
             },
-            parseSalaryText(detail?.jobPostingInfo?.jobDescription)
+            parseSalaryText(info?.jobDescription)
           )
         );
       }
@@ -266,10 +283,10 @@ async function scanBoard(b: Board): Promise<Lead[]> {
     )) as { jobs?: { title: string; jobUrl?: string; applyUrl?: string; location?: string; isRemote?: boolean; publishedAt?: string; publishedDate?: string; compensation?: { compensationTierSummary?: string; scrapeableCompensationSalarySummary?: string } }[] } | null;
     for (const j of data?.jobs ?? []) {
       const loc = j.location ?? "";
-      const remote = j.isRemote === true || REMOTE_RE.test(loc);
+      const locOk = j.isRemote === true || wantLocation(loc);
       const posted = j.publishedAt ?? j.publishedDate ?? null;
       const url = j.jobUrl ?? j.applyUrl;
-      if (url && wantTitle(j.title) && remote && freshEnough(posted)) {
+      if (url && wantTitle(j.title) && locOk && freshEnough(posted)) {
         const comp =
           j.compensation?.compensationTierSummary ??
           j.compensation?.scrapeableCompensationSalarySummary;

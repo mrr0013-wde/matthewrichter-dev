@@ -92,8 +92,9 @@ export default async function JobHunting() {
         <p className="text-sm text-[#737373] mb-5">
           Fresh PM roles — all levels, not just Senior — at companies where you
           have connections, scanned daily from their public job boards
-          (Greenhouse, Lever, Ashby, Workday). Roles posting a range that tops
-          out under $150k are filtered out. Newest postings first.
+          (Greenhouse, Lever, Ashby, Workday). Remote or Greenville, SC only;
+          roles posting a range that tops out under $150k are filtered out.
+          Newest postings first.
         </p>
         <div className="space-y-2">
           {leads.map((l) => (
