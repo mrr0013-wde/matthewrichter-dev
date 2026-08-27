@@ -17,7 +17,8 @@ export default async function JobHunting() {
       "personal_applications?select=*&order=last_activity.desc.nullslast,date_applied.desc.nullslast"
     ),
     rest<JobLead[]>(
-      "personal_job_leads?dismissed=eq.false&select=*&order=connection_count.desc,posted_at.desc.nullslast&limit=100"
+      // salary floor also applied here so pre-existing low-band leads hide
+      "personal_job_leads?dismissed=eq.false&or=(salary_max.is.null,salary_max.gte.150000)&select=*&order=connection_count.desc,posted_at.desc.nullslast&limit=100"
     ),
     rest<Connection[]>(
       "personal_connections?select=first_name,last_name,company,position,url&company=not.is.null"
@@ -89,9 +90,10 @@ export default async function JobHunting() {
       <section>
         <h2 className="text-2xl font-black mb-1">Job Finder</h2>
         <p className="text-sm text-[#737373] mb-5">
-          Fresh PM roles at companies where you have connections, scanned daily
-          from their public job boards (Greenhouse, Lever, Ashby, Workday).
-          Ranked by who you know.
+          Fresh PM roles — all levels, not just Senior — at companies where you
+          have connections, scanned daily from their public job boards
+          (Greenhouse, Lever, Ashby, Workday). Roles posting a range that tops
+          out under $150k are filtered out. Ranked by who you know.
         </p>
         <div className="space-y-2">
           {leads.map((l) => (

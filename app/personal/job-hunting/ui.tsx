@@ -33,6 +33,13 @@ function fmt(d: string | null): string {
 function todayStr(): string {
   return new Date().toISOString().slice(0, 10);
 }
+function fmtSalary(min: number | null, max: number | null): string | null {
+  if (min == null && max == null) return null;
+  const k = (n: number) => `$${Math.round(n / 1000)}k`;
+  const lo = min ?? max!;
+  const hi = max ?? min!;
+  return lo === hi ? k(lo) : `${k(lo)}–${k(hi)}`;
+}
 
 /* ── To-Do section (drop target) ────────────────── */
 
@@ -282,12 +289,18 @@ export function AppRow({ a, whoAt }: { a: Application; whoAt: Connection[] }) {
 /* ── Job lead row ───────────────────────────────── */
 
 export function LeadRow({ l, whoAt }: { l: JobLead; whoAt: Connection[] }) {
+  const salary = fmtSalary(l.salary_min, l.salary_max);
   return (
     <details className="rounded-xl border border-[#33373d] bg-[#1d2025] open:border-blue-500/30 transition-colors">
       <summary className="px-4 py-3 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
         <div className="flex items-center gap-3 min-w-0">
           <span className="font-bold shrink-0">{l.company}</span>
           <span className="hidden sm:block text-[#a3a3a3] text-sm truncate min-w-0 flex-1">{l.title}</span>
+          {salary && (
+            <span className="shrink-0 px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-mono text-xs">
+              {salary}
+            </span>
+          )}
           {whoAt.length > 0 && (
             <span className="shrink-0 px-1.5 py-0.5 rounded bg-green-500/15 text-green-300 border border-green-500/30 font-mono text-xs">
               {whoAt.length} 🤝
@@ -305,6 +318,10 @@ export function LeadRow({ l, whoAt }: { l: JobLead; whoAt: Connection[] }) {
             Open posting ↗
           </a>
           {l.location && <span className="text-[#737373]"> · {l.location}</span>}
+          <span className="text-[#737373]">
+            {" · "}
+            {l.salary_raw ?? salary ?? "salary not posted"}
+          </span>
         </p>
         {whoAt.length > 0 && (
           <p className="text-xs text-[#737373] mb-3">

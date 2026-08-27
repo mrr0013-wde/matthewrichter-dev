@@ -58,6 +58,9 @@ export type JobLead = {
   connection_count: number;
   found_at: string;
   dismissed: boolean;
+  salary_min: number | null;
+  salary_max: number | null;
+  salary_raw: string | null;
 };
 
 export type Todo = {
