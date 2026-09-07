@@ -24,10 +24,14 @@ is a production deploy.** Two apps live in this one repo:
 
 `lib/personal/db.ts` uses the service role against Supabase project
 `xvsgqxkvnuxgxnovyzfv`, which is **the same project that backs betzgames, dou-dizhu and a
-relay word game**. This repo owns **only** the `personal_*` tables
-(`personal_applications`, `personal_ats_boards`, `personal_bets`, `personal_connections`,
-`personal_job_leads`, `personal_todos`). Do not touch any other table from here. The full
-as-found schema with owners is in the betzgames repo at `supabase/schema/`.
+relay word game**. This repo owns **only** the job-hunt tables
+(`personal_applications`, `personal_ats_boards`, `personal_connections`,
+`personal_job_leads`, `personal_todos`). `personal_bets` is NOT ours despite the prefix:
+it is written by betzgames' `/betstracker` grade route. Do not touch any other table
+from here. The full as-found schema with owners is in the betzgames repo at
+`supabase/schema/`; migrations are applied through the Supabase connector or dashboard
+and recorded remotely, and the applied-version list lives in that repo's
+`supabase/migrations/README.md`.
 
 ## Scheduling
 
