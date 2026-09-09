@@ -11,8 +11,12 @@ is a production deploy.** Two apps live in this one repo:
 
 | Area | What | Code |
 |---|---|---|
-| Public site | matthewrichter.dev homepage / portfolio | `app/page.tsx`, `app/layout.tsx` |
-| `/personal` | Password-gated personal tools: job-hunting tracker (Gmail sync, job scan, connections, ATS boards, todos) and family finance | `app/personal/**`, `app/api/personal/**`, `lib/personal/{auth,db}.ts`, `scripts/gmail-job-sync.gs` |
+| Public site | matthewrichter.dev homepage / portfolio | `app/(site)/page.tsx`; root `app/layout.tsx` is shared |
+| `/personal` | Google-sign-in-gated personal tools: job-hunting tracker (Gmail sync, job scan, connections, ATS boards, todos) and family finance | `app/(personal)/personal/**`, `app/api/personal/**`, `lib/personal/{auth,db}.ts`, `scripts/gmail-job-sync.gs` |
+
+`(site)` and `(personal)` are route groups: they keep the two apps visibly separate in the
+tree without changing any URL. The realm homepage (PRD-realm) lands in `app/(site)/`,
+`realm/`, and `app/api/realm/`; nothing of it goes under `(personal)`.
 
 ## Commands
 
@@ -35,10 +39,13 @@ and recorded remotely, and the applied-version list lives in that repo's
 
 ## Scheduling
 
-Supabase **pg_cron** job `personal-job-scan` POSTs `https://matthewrichter.dev/api/personal/job-scan`
+Supabase **pg_cron** job `personal-job-scan` (jobid 15) POSTs `https://matthewrichter.dev/api/personal/job-scan`
 daily at 11:00 UTC with header `x-internal-secret` = `private_config.personal_cron_secret`
-(a row in the shared database). The route also accepts `CRON_SECRET`. There are no Vercel
-crons. Job definitions are dumped in the betzgames repo at `supabase/cron/`.
+(a row in the shared database). The route checks that header against the Vercel env
+`CRON_SECRET`, so the two values must match. The Gmail sync is a Google Apps Script
+(`scripts/gmail-job-sync.gs`) on a daily trigger in your own account, posting to
+`api/personal/gmail-sync` with the same secret. There are no Vercel crons. Job definitions
+are dumped in the betzgames repo at `supabase/cron/`. Runbook: `.claude/skills/personal-ops`.
 
 ## Product docs
 
@@ -46,6 +53,12 @@ PRDs live in `docs/prds/`. `PRD-realm.md` specifies the planned 3D-realm homepag
 site; its Decision Log is settled (don't relitigate), and it needs a small read-only status
 route on betzgames first (its M0). The CFB Pick'em PRD moved to the betzgames repo, next
 to the code it describes.
+
+## Runbooks
+
+- `.claude/skills/personal-ops/SKILL.md` — job-scan cron health, Gmail sync, sign-in, where
+  each `personal_*` table's rows come from, secret rotation, the never-delete list. Read it
+  before touching `app/api/personal`, `lib/personal`, or any `personal_*` table.
 
 ## House rules
 
