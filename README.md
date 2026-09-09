@@ -1,36 +1,35 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# matthewrichter.dev
 
-## Getting Started
+Next 16 App Router, React 19, Tailwind 4, Node 24, deployed on Vercel. **Push to `main` is
+a production deploy.**
 
-First, run the development server:
+Two apps in one repo, kept apart by route groups (URLs unchanged):
+
+| Route group | What | Code |
+|---|---|---|
+| `app/(site)/` | The public homepage / portfolio. The 3D realm from `docs/prds/PRD-realm.md` lands here later. | `app/(site)/page.tsx` |
+| `app/(personal)/` | `/personal`: Google-sign-in-gated job-hunting tracker and family-finance stub | `app/(personal)/personal/**`, `app/api/personal/**`, `lib/personal/` |
+
+## Run it
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+vercel env pull .env.local        # see .env.example for what each variable is
+npm run dev                       # http://localhost:3000
+npx tsc --noEmit                  # there are no tests yet; typecheck before pushing
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Data and scheduling
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+`lib/personal/db.ts` talks to Supabase project `xvsgqxkvnuxgxnovyzfv`, which is **shared
+with betzgames and two other apps**. This repo owns only the five job-hunt `personal_*`
+tables. The daily job scan is a pg_cron job in that project; the Gmail sync is an Apps
+Script in the owner's Google account. Details, health checks and the never-delete list:
+`.claude/skills/personal-ops/SKILL.md`. Table ownership and the cron dump live in the
+betzgames repo under `supabase/`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Docs
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `AGENTS.md` (included by `CLAUDE.md`) — the map for AI-assisted sessions
+- `docs/prds/PRD-realm.md` — the living-realm homepage spec
+- `../betzgames/docs/REFACTOR-PLAN.md` — the cross-repo cleanup plan this layout comes from

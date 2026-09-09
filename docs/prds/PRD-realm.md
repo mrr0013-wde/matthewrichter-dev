@@ -316,9 +316,10 @@ function of `RealmState` + `realm.config.ts`:
 ```
 matthewrichter-dev (Next 16 App Router, React 19, Tailwind 4, Vercel)
 ├── app/
-│   ├── page.tsx                      server component: panel HTML + <Realm/> client island
-│   ├── api/realm/route.ts            aggregator: betzgames status + GitHub + uptime → RealmState
-│   └── realm/                        (M1 only) staging route before promotion to /
+│   ├── (site)/page.tsx               server component: panel HTML + <Realm/> client island
+│   ├── (site)/realm/                 (M1 only) staging route before promotion to /
+│   ├── (personal)/personal/          the job-hunt tools; the realm never touches this group
+│   └── api/realm/route.ts            aggregator: betzgames status + GitHub + uptime → RealmState
 ├── realm/
 │   ├── config/realm.config.ts        holdings, regions, hexes, recipes, links (the map)
 │   ├── state/resolve.ts              resolveState(signals, now) — pure, tested
