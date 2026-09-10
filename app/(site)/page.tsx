@@ -204,20 +204,20 @@ export default function Home() {
               meta="May 2024 – Present · Greenville, SC (Remote)"
               groups={[
                 {
-                  heading: "Engagement with USAA",
+                  heading: "Client: a Fortune 500 financial services & insurance company",
                   bullets: [
-                    "Owned product strategy, roadmap, backlog, and success metrics for USAA's member-facing ecosystem, translating a five-year target of more than 10 million unique visits into prioritized initiatives",
-                    "Partnered with design and a multi-pod team of more than 40 front-end and back-end developers to ship intricate member-facing features from concept through launch and iteration, accelerating release cadence despite ongoing scope changes from external partners",
+                    "Owned product strategy, roadmap, backlog, and success metrics for the client's customer-facing digital ecosystem, translating a five-year target of more than 10 million unique visits into prioritized initiatives",
+                    "Partnered with design and a multi-pod team of more than 40 front-end and back-end developers to ship intricate customer-facing features from concept through launch and iteration, accelerating release cadence despite ongoing scope changes from external partners",
                     "Defined and implemented a reusable partner integration framework of reference workflows, templates, and system readiness milestones, so that onboarding a new partner became repeatable configuration rather than a bespoke build each time",
-                    "Used member research and survey data on digital vs. in-person preferences to form and validate product hypotheses, champion member needs, and influence roadmap decisions across related initiatives",
+                    "Used customer discovery research and survey data on digital vs. in-person preferences to form and validate product hypotheses, champion customer needs, and influence roadmap decisions across related initiatives",
                     "Managed and mentored associate product managers and coached cross-functional teams on how to optimize delivery, refine backlogs, and manage stakeholders",
                     "Introduced agile process improvements that lifted sprint predictability and velocity by 20%",
                   ],
                 },
                 {
-                  heading: "Engagement with Capital One",
+                  heading: "Client: a top-10 U.S. bank",
                   bullets: [
-                    "Defined the product vision and strategy for Capital One's transformation of its internal core Transaction Authorization and Restrictions platforms; focused on improving ledger integrity and customer-facing capabilities",
+                    "Defined the product vision and strategy for transforming the bank's core transaction authorization and restrictions platforms; focused on improving ledger integrity and customer-facing capabilities",
                     "Created PRDs for the transformation initiative; defined a new real-time rules engine integrating Overdraft and Stop Payments systems to replace legacy processing logic",
                     "Translated PRDs into actionable epics and user stories, roadmapped the full Jira backlog into a cross-functional execution plan, and partnered with QA and internal stakeholders to ensure development readiness",
                     "Worked with cross-functional teams in a highly regulated environment to define requirements and mitigate regulatory and technical risk before automated decisioning went to production",
@@ -233,7 +233,8 @@ export default function Home() {
               groups={[
                 {
                   bullets: [
-                    "Defined and shipped LLM-powered capabilities to enterprise customers, aligning machine learning, customer success, engineering, and quality assurance on product requirements, evaluation criteria, and quality and safety thresholds for launch",
+                    "Lifted purchase rates 30-40% with conversational commerce and CSAT 20% with empathy prompts, on LLM-powered capabilities handling millions of chats per month through Black Friday/Cyber Monday peak load",
+                    "Aligned machine learning, customer success, engineering, and quality assurance on product requirements, evaluation criteria, and the quality and safety thresholds required to put a model in front of end users",
                     "Standardized and optimized critical path work processes across seven teams, enhancing communication channels between them, which led to a 20% increase in average sprint velocity",
                     "Consolidated disparate roadmaps from multiple engineering and ML teams into a cohesive and coherent plan with a clear strategic direction for senior leadership and stakeholders",
                     'Orchestrated cross-functional "Quarterly Goal" meetings, which led to consistent >100% goal completion',
@@ -281,7 +282,7 @@ export default function Home() {
                 {
                   bullets: [
                     "Identified gaps and redundancies in the marketing strategy for a significant product and redeveloped the system by identifying, centralizing, and enabling key players, resulting in $1B of new contracts",
-                    "Selected to join the on-site implementation team for a multi-billion-dollar energy megaproject in Soyo, Angola; identified problems and communicated solution strategies to groups ranging from safety-critical construction and commissioning operations up to the CEO, resulting in $10B savings",
+                    "Selected to join the on-site implementation team for a multi-billion-dollar energy megaproject in Soyo, Angola; identified problems and communicated solution strategies to groups ranging from safety-critical construction and commissioning operations up to the CEO, resulting in $10M in savings",
                     "Mobilized and guided a team of 25 engineers to find solutions to 900+ unresolved tickets in two months, triaged backlog in daily stand-ups and weekly check-ins to achieve a $10M return for the client",
                   ],
                 },
