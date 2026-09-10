@@ -201,7 +201,7 @@ export default function Home() {
             <JobCard
               company="Umbrage, part of Bain &amp; Company"
               role="Senior Product Manager"
-              meta="May 2024 – Present · Greenville, SC (Remote)"
+              meta="Mar 2024 – Present · Greenville, SC (Remote)"
               groups={[
                 {
                   heading: "Client: a Fortune 500 financial services & insurance company",
